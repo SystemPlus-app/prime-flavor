@@ -19,7 +19,7 @@ function AdminDashboard() {
   return (
     <div className="h-screen flex flex-col bg-base overflow-hidden">
       {/* top bar */}
-      <header className="flex items-center justify-between px-5 py-3 bg-sidebar border-b border-border shrink-0">
+      <header className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-sidebar border-b border-border shrink-0">
         <div className="flex flex-col leading-none">
           <span className="text-orange font-extrabold text-base tracking-wide uppercase">Prime Flavor</span>
           <span className="text-muted text-[10px] tracking-widest uppercase">Admin Panel</span>

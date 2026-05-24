@@ -24,35 +24,20 @@ function KitchenDisplay() {
   return (
     <div className="h-screen flex flex-col bg-base overflow-hidden">
       {/* top bar */}
-      <header className="flex items-center justify-between px-5 py-3 bg-sidebar border-b border-border shrink-0">
-        <div className="flex items-center gap-4">
+      <header className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-sidebar border-b border-border shrink-0">
+        <div className="flex items-center gap-3 flex-wrap">
           <span className="text-orange font-extrabold text-base tracking-widest uppercase">Kitchen Display</span>
           {activeOrders.length > 0 && (
             <div className="flex items-center gap-1.5 bg-orange px-3 py-1 rounded-full">
               <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-              <span className="text-white text-xs font-bold uppercase tracking-wide">
-                {activeOrders.length} Active
-              </span>
+              <span className="text-white text-xs font-bold uppercase tracking-wide">{activeOrders.length} Active</span>
             </div>
           )}
         </div>
-
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <Clock />
-          <div className="flex items-center gap-2 ml-2">
-            <Link
-              href="/admin"
-              className="text-muted hover:text-cream text-xs uppercase tracking-wide font-semibold px-3 py-1.5 rounded bg-card border border-border hover:border-orange transition-colors"
-            >
-              Admin
-            </Link>
-            <Link
-              href="/kiosk"
-              className="text-muted hover:text-cream text-xs uppercase tracking-wide font-semibold px-3 py-1.5 rounded bg-card border border-border hover:border-orange transition-colors"
-            >
-              Kiosk
-            </Link>
-          </div>
+          <Link href="/admin" className="text-muted hover:text-cream text-xs uppercase tracking-wide font-semibold px-3 py-1.5 rounded bg-card border border-border hover:border-orange transition-colors">Admin</Link>
+          <Link href="/kiosk" className="text-muted hover:text-cream text-xs uppercase tracking-wide font-semibold px-3 py-1.5 rounded bg-card border border-border hover:border-orange transition-colors">Kiosk</Link>
         </div>
       </header>
 
@@ -77,22 +62,13 @@ function KitchenDisplay() {
       </div>
 
       {/* status bar */}
-      <footer className="flex items-center justify-between px-5 py-2.5 bg-sidebar border-t border-border shrink-0">
-        <div className="flex items-center gap-5 text-sm">
-          <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#e07030]" />
-            <span className="text-cream-dim font-semibold">NEW ({newCount})</span>
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#d4a530]" />
-            <span className="text-cream-dim font-semibold">COOKING ({preparingCount})</span>
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#3da855]" />
-            <span className="text-cream-dim font-semibold">READY ({readyCount})</span>
-          </span>
+      <footer className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 bg-sidebar border-t border-border shrink-0">
+        <div className="flex items-center gap-4 flex-wrap text-sm">
+          <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#e07030]" /><span className="text-cream-dim font-semibold">NEW ({newCount})</span></span>
+          <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#d4a530]" /><span className="text-cream-dim font-semibold">COOKING ({preparingCount})</span></span>
+          <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#3da855]" /><span className="text-cream-dim font-semibold">READY ({readyCount})</span></span>
         </div>
-        <span className="text-muted text-xs">Station: Main Grill · Prime Flavor BBQ</span>
+        <span className="text-muted text-xs hidden sm:block">Station: Main Grill · Prime Flavor BBQ</span>
       </footer>
     </div>
   );

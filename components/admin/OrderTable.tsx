@@ -52,17 +52,15 @@ export function OrderTable({ orders }: Props) {
   return (
     <div className="flex-1 flex flex-col overflow-hidden px-4 pb-4">
       {/* filter bar */}
-      <div className="flex items-center justify-between mb-3 gap-4">
-        <div className="flex items-center gap-1">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-2">
+        <div className="flex items-center gap-1 flex-wrap">
           <span className="text-cream-dim text-sm font-semibold mr-2">Recent Orders</span>
           {filters.map((f) => (
             <button
               key={f.id}
               onClick={() => setFilter(f.id)}
               className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide transition-colors ${
-                filter === f.id
-                  ? 'bg-orange text-white'
-                  : 'bg-card text-muted hover:text-cream border border-border'
+                filter === f.id ? 'bg-orange text-white' : 'bg-card text-muted hover:text-cream border border-border'
               }`}
             >
               {f.label}
@@ -73,16 +71,16 @@ export function OrderTable({ orders }: Props) {
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-sm">🔍</span>
           <input
             type="text"
-            placeholder="Search order ID or customer..."
+            placeholder="Search order or customer..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="bg-card border border-border rounded-lg pl-8 pr-3 py-2 text-sm text-cream placeholder:text-muted outline-none focus:border-orange w-56"
+            className="bg-card border border-border rounded-lg pl-8 pr-3 py-2 text-sm text-cream placeholder:text-muted outline-none focus:border-orange w-full sm:w-52"
           />
         </div>
       </div>
 
       {/* table */}
-      <div className="flex-1 overflow-y-auto rounded-xl border border-border">
+      <div className="flex-1 overflow-auto rounded-xl border border-border">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border bg-card">

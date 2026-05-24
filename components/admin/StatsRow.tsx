@@ -41,7 +41,7 @@ export function StatsRow({ orders }: Props) {
   ];
 
   return (
-    <div className="grid grid-cols-4 gap-3 p-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-4">
       {stats.map((s) => (
         <div key={s.label} className="bg-card rounded-xl border border-border px-4 py-3">
           <p className="text-muted text-xs uppercase tracking-wide mb-1">{s.label}</p>
