@@ -1,5 +1,6 @@
 export type OrderStatus = 'NEW' | 'PREPARING' | 'READY' | 'COMPLETED' | 'CANCELLED';
 export type PaymentStatus = 'UNPAID' | 'CASH' | 'CARD';
+export type OrderSource = 'KIOSK' | 'WEBSITE';
 
 export interface OrderItem {
   id: string;
@@ -20,6 +21,7 @@ export interface Order {
   total: number;
   paymentStatus: PaymentStatus;
   status: OrderStatus;
+  source: OrderSource;
   createdAt: string;
   updatedAt: string;
   notes?: string;

@@ -505,7 +505,7 @@ export default function KioskPage() {
       )}
 
       {/* ── MOBILE layout (hidden on lg+) ─────────────────────────────────── */}
-      <div className="flex flex-col h-full md:hidden">
+      <div className="flex flex-col h-full lg:hidden">
         {/* Mobile header */}
         <header className="flex items-center justify-between px-4 py-3 bg-sidebar border-b border-border shrink-0">
           <div
@@ -588,7 +588,7 @@ export default function KioskPage() {
       </div>
 
       {/* ── DESKTOP layout (hidden below lg) ──────────────────────────────── */}
-      <div className="hidden md:flex h-full">
+      <div className="hidden lg:flex h-full">
         <KioskSidebar
           active={category}
           onSelect={setCategory}
