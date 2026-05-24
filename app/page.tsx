@@ -3,9 +3,17 @@ import Link from 'next/link';
 export default function Home() {
   const links = [
     {
+      href: '/website',
+      label: 'Public Website',
+      desc: 'Marketing site + online ordering for customers',
+      icon: '🌐',
+      color: '#c49a0a',
+      badge: 'Public',
+    },
+    {
       href: '/kiosk',
       label: 'Customer Kiosk',
-      desc: 'Self-service ordering for guests',
+      desc: 'Self-service ordering for in-person guests',
       icon: '🧾',
       color: '#e07030',
       badge: 'Public',
@@ -29,24 +37,24 @@ export default function Home() {
   ];
 
   return (
-    <div className="h-screen flex flex-col items-center justify-center bg-base gap-8 p-8">
+    <div className="h-screen flex flex-col items-center justify-center bg-base gap-8 p-8 overflow-auto">
       <div className="text-center">
         <h1 className="text-orange font-extrabold text-4xl tracking-wide uppercase">Prime Flavor</h1>
         <p className="text-cream-dim text-sm tracking-widest uppercase mt-1">
-          Brazilian BBQ · Ordering System
+          Brazilian BBQ · System Hub
         </p>
       </div>
 
-      <div className="flex gap-4">
+      <div className="flex flex-wrap justify-center gap-4 max-w-4xl">
         {links.map((l) => (
           <Link
             key={l.href}
             href={l.href}
-            className="flex flex-col items-center gap-3 w-52 p-6 rounded-2xl bg-card border border-border hover:border-orange transition-all hover:shadow-[0_0_0_1px_#e07030] group"
+            className="flex flex-col items-center gap-3 w-48 p-6 rounded-2xl bg-card border border-border hover:border-orange transition-all hover:shadow-[0_0_0_1px_#e07030] group"
           >
             <span className="text-5xl">{l.icon}</span>
             <div className="text-center">
-              <p className="text-cream font-bold text-base group-hover:text-orange transition-colors">
+              <p className="text-cream font-bold text-sm group-hover:text-orange transition-colors">
                 {l.label}
               </p>
               <p className="text-muted text-xs mt-1 leading-relaxed">{l.desc}</p>
@@ -67,9 +75,7 @@ export default function Home() {
       </div>
 
       <p className="text-muted text-xs mt-2 text-center max-w-md leading-relaxed">
-        For kiosk deployment: use iPad Guided Access or Android Screen Pinning to lock the browser
-        to <code className="bg-card px-1 py-0.5 rounded text-cream-dim">/kiosk</code> so customers
-        cannot access other routes.
+        Online orders (site) and kiosk orders both go to the Kitchen Display in real time.
       </p>
     </div>
   );

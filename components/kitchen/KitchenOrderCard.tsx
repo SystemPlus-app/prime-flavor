@@ -56,7 +56,7 @@ export function KitchenOrderCard({ order }: Props) {
     <div className={`flex flex-col rounded-xl border bg-card overflow-hidden transition-shadow duration-500 ${cardClasses(order.status, late)}`}>
       {/* Header */}
       <div className={`flex items-center justify-between px-4 py-3 ${headerBg(order.status, late)}`}>
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 flex-wrap">
           {late && order.status !== 'READY' && (
             <span className="text-[#ff6060] animate-pulse">⚠</span>
           )}
@@ -66,6 +66,15 @@ export function KitchenOrderCard({ order }: Props) {
           <span className={`text-[10px] font-extrabold uppercase tracking-widest ${label.color}`}>
             {label.text}
           </span>
+          {order.source === 'WEBSITE' ? (
+            <span className="text-[9px] bg-blue-950/60 border border-blue-500/40 text-blue-300 font-extrabold uppercase tracking-widest px-2 py-0.5 rounded">
+              🌐 Online
+            </span>
+          ) : (
+            <span className="text-[9px] bg-orange-dim/40 border border-orange/20 text-orange font-extrabold uppercase tracking-widest px-2 py-0.5 rounded">
+              Kiosk
+            </span>
+          )}
         </div>
 
         <div className="flex flex-col items-end gap-0.5">

@@ -1,4 +1,6 @@
-import type { Order } from '@/types/order';
+import type { Order, OrderSource } from '@/types/order';
+
+const KIOSK: OrderSource = 'KIOSK';
 
 const now = Date.now();
 const mins = (m: number) => new Date(now - m * 60 * 1000).toISOString();
@@ -17,6 +19,7 @@ export const mockOrders: Order[] = [
     total: 44.28,
     paymentStatus: 'UNPAID',
     status: 'NEW',
+    source: KIOSK,
     createdAt: mins(13),
     updatedAt: mins(13),
   },
@@ -34,6 +37,7 @@ export const mockOrders: Order[] = [
     total: 37.26,
     paymentStatus: 'CARD',
     status: 'PREPARING',
+    source: KIOSK,
     createdAt: mins(7),
     updatedAt: mins(5),
   },
@@ -50,6 +54,7 @@ export const mockOrders: Order[] = [
     total: 63.72,
     paymentStatus: 'CASH',
     status: 'READY',
+    source: KIOSK,
     createdAt: mins(18),
     updatedAt: mins(2),
   },
@@ -66,6 +71,7 @@ export const mockOrders: Order[] = [
     total: 29.16,
     paymentStatus: 'CARD',
     status: 'COMPLETED',
+    source: KIOSK,
     createdAt: mins(45),
     updatedAt: mins(30),
   },
@@ -82,6 +88,7 @@ export const mockOrders: Order[] = [
     total: 34.56,
     paymentStatus: 'CASH',
     status: 'COMPLETED',
+    source: KIOSK,
     createdAt: mins(65),
     updatedAt: mins(50),
   },

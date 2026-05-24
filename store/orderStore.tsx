@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import type { Order, OrderItem, OrderStatus, PaymentStatus } from '@/types/order';
+import type { Order, OrderItem, OrderStatus, OrderSource, PaymentStatus } from '@/types/order';
 import { mockOrders } from '@/data/mockOrders';
 import { calcTax, calcTotal } from '@/utils/pricing';
 
@@ -35,7 +35,7 @@ function nextOrderNumber(): number {
 
 interface OrderStoreValue {
   orders: Order[];
-  addOrder: (items: OrderItem[], customerName?: string, paymentStatus?: PaymentStatus) => Order;
+  addOrder: (items: OrderItem[], customerName?: string, paymentStatus?: PaymentStatus, source?: OrderSource) => Order;
   updateStatus: (id: string, status: OrderStatus) => void;
   updatePayment: (id: string, paymentStatus: PaymentStatus) => void;
   toggleAvailable: (productId: string) => void;
@@ -74,7 +74,7 @@ export function OrderStoreProvider({ children }: { children: React.ReactNode }) 
   }, []);
 
   const addOrder = useCallback(
-    (items: OrderItem[], customerName?: string, paymentStatus: PaymentStatus = 'UNPAID'): Order => {
+    (items: OrderItem[], customerName?: string, paymentStatus: PaymentStatus = 'UNPAID', source: OrderSource = 'KIOSK'): Order => {
       const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0);
       const order: Order = {
         id: crypto.randomUUID(),
@@ -86,6 +86,7 @@ export function OrderStoreProvider({ children }: { children: React.ReactNode }) 
         total: calcTotal(subtotal),
         paymentStatus,
         status: 'NEW',
+        source,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };

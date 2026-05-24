@@ -19,7 +19,7 @@ const productPhoto: Record<string, string> = {
   'bbq-chicken-skewer':         '/menu/bbq-chicken.avif',
   'bbq-chicken-bacon-skewer':   '/menu/bbq-chicken-bacon.png',
   'queijo-coalho-skewer':       '/menu/queijo-coalho.png',
-  'picanha-sandwich':           '/menu/bbq-picanha.png',
+  'picanha-sandwich':           '/menu/picanha-sandwich.png',
   'picanha-cheese-bread':       '/menu/bbq-picanha.png',
   'chicken-bacon-sandwich':     '/menu/bbq-chicken-bacon.png',
   'sausage-sandwich':           '/menu/bbq-sausage.png',
