@@ -7,14 +7,15 @@ import { OrderTable } from '@/components/admin/OrderTable';
 import { Clock } from '@/components/shared/Clock';
 import { PINGate } from '@/components/shared/PINGate';
 import { useOrderStore } from '@/store/orderStore';
-import { products as allProducts } from '@/data/primeFlavorMenu';
+import { products as allProducts, withAvailability } from '@/data/primeFlavorMenu';
 import { formatPrice } from '@/utils/pricing';
 
 type AdminTab = 'orders' | 'menu';
 
 function AdminDashboard() {
-  const { orders } = useOrderStore();
+  const { orders, availability, toggleAvailable } = useOrderStore();
   const [tab, setTab] = useState<AdminTab>('orders');
+  const menuProducts = withAvailability(allProducts, availability);
 
   return (
     <div className="h-screen flex flex-col bg-base overflow-hidden">
@@ -87,21 +88,22 @@ function AdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {allProducts.map((p) => (
+                {menuProducts.map((p) => (
                   <tr key={p.id} className="border-b border-border hover:bg-card/50 transition-colors">
                     <td className="px-4 py-3 font-semibold text-cream">{p.name}</td>
                     <td className="px-4 py-3 text-cream-dim capitalize">{p.category}</td>
                     <td className="px-4 py-3 font-bold text-orange">{formatPrice(p.price)}</td>
                     <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wide ${
+                      <button
+                        onClick={() => toggleAvailable(p.id)}
+                        className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wide transition-colors cursor-pointer ${
                           p.available
-                            ? 'bg-[#1a3020] text-[#3da855]'
-                            : 'bg-[#3a1a10] text-[#d07060]'
+                            ? 'bg-[#1a3020] text-[#3da855] hover:bg-[#22402a]'
+                            : 'bg-[#3a1a10] text-[#d07060] hover:bg-[#4a2216]'
                         }`}
                       >
                         {p.available ? 'Available' : 'Sold Out'}
-                      </span>
+                      </button>
                     </td>
                   </tr>
                 ))}

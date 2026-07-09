@@ -1,7 +1,8 @@
 'use client';
 
 import type { Product } from '@/types/product';
-import { products as allProducts } from '@/data/primeFlavorMenu';
+import { products as allProducts, withAvailability } from '@/data/primeFlavorMenu';
+import { useOrderStore } from '@/store/orderStore';
 import { formatPrice } from '@/utils/pricing';
 
 interface CartItem {
@@ -14,23 +15,23 @@ interface Props {
   onAdd: (product: Product) => void;
 }
 
-function getSuggestions(cart: CartItem[]): Product[] {
+function getSuggestions(cart: CartItem[], products: Product[]): Product[] {
   const inCartIds = new Set(cart.map((c) => c.product.id));
   const inCartCategories = new Set(cart.map((c) => c.product.category));
   const result: Product[] = [];
 
   if (!inCartCategories.has('drinks')) {
-    const guarana = allProducts.find((p) => p.id === 'guarana' && !inCartIds.has(p.id));
+    const guarana = products.find((p) => p.id === 'guarana' && p.available && !inCartIds.has(p.id));
     if (guarana) result.push(guarana);
   }
 
   if (!inCartCategories.has('sides')) {
-    const cb = allProducts.find((p) => p.id === 'cheese-bread-box' && !inCartIds.has(p.id));
+    const cb = products.find((p) => p.id === 'cheese-bread-box' && p.available && !inCartIds.has(p.id));
     if (cb) result.push(cb);
   }
 
   if (result.length < 2) {
-    const garlic = allProducts.find((p) => p.id === 'garlic-bread' && !inCartIds.has(p.id));
+    const garlic = products.find((p) => p.id === 'garlic-bread' && p.available && !inCartIds.has(p.id));
     if (garlic) result.push(garlic);
   }
 
@@ -46,7 +47,9 @@ const suggestionEmoji: Record<string, string> = {
 };
 
 export function UpsellSuggestions({ cart, onAdd }: Props) {
-  const suggestions = getSuggestions(cart);
+  const { availability } = useOrderStore();
+  const products = withAvailability(allProducts, availability);
+  const suggestions = getSuggestions(cart, products);
   if (suggestions.length === 0) return null;
 
   return (

@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Product } from '@/types/product';
 import type { Order, OrderItem, PaymentStatus } from '@/types/order';
-import { categories, getProductsByCategory } from '@/data/primeFlavorMenu';
+import { categories, getProductsByCategory, withAvailability } from '@/data/primeFlavorMenu';
 import { getCustomization } from '@/data/customizations';
 import { useOrderStore } from '@/store/orderStore';
+import { buildFallbackOrder } from '@/lib/orderFallback';
 import { formatPrice, calcTax, calcTotal } from '@/utils/pricing';
 import { formatOrderId } from '@/utils/orderStatus';
 import { KioskSidebar } from '@/components/kiosk/KioskSidebar';
@@ -362,13 +363,14 @@ function MobileCartDrawer({ cart, show, customerName, onNameChange, onAdjust, on
 // ── Main kiosk page ───────────────────────────────────────────────────────────
 
 export default function KioskPage() {
-  const { addOrder } = useOrderStore();
+  const { addOrder, availability } = useOrderStore();
 
   const [step, setStep] = useState<KioskStep>('browsing');
   const [category, setCategory] = useState('featured');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [customerName, setCustomerName] = useState('');
   const [confirmedOrder, setConfirmedOrder] = useState<Order | null>(null);
+  const [paymentReferenceId, setPaymentReferenceId] = useState('');
   const [showStaffModal, setShowStaffModal] = useState(false);
   const [showMobileCart, setShowMobileCart] = useState(false);
   const [pendingCustomization, setPendingCustomization] = useState<PendingCustomization | null>(null);
@@ -380,7 +382,7 @@ export default function KioskPage() {
   const desktopGridRef = useRef<HTMLDivElement>(null);
   const mobileGridRef = useRef<HTMLDivElement>(null);
 
-  const products = getProductsByCategory(category);
+  const products = withAvailability(getProductsByCategory(category), availability);
 
   useEffect(() => {
     desktopGridRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
@@ -445,10 +447,11 @@ export default function KioskPage() {
 
   function handlePlaceOrder() {
     if (cart.length === 0) return;
+    setPaymentReferenceId(`kiosk-${Date.now()}`);
     setStep('payment');
   }
 
-  function handlePaymentSelect(method: PaymentStatus) {
+  async function handlePaymentSelect(method: PaymentStatus) {
     const items: OrderItem[] = cart.map((c) => ({
       id: crypto.randomUUID(),
       productId: c.product.id,
@@ -457,8 +460,24 @@ export default function KioskPage() {
       quantity: c.quantity,
       notes: c.notes || undefined,
     }));
-    const order = addOrder(items, customerName.trim() || undefined, method);
-    setConfirmedOrder(order);
+    try {
+      const order = await addOrder(items, customerName.trim() || undefined, method);
+      setConfirmedOrder(order);
+    } catch (err) {
+      // Payment may already be charged (CARD) — never strand the customer without
+      // a confirmation screen just because the order failed to save to the kitchen.
+      console.error('Failed to save order — showing local confirmation as fallback', err);
+      const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0);
+      setConfirmedOrder(buildFallbackOrder({
+        items,
+        customerName,
+        paymentStatus: method,
+        source: 'KIOSK',
+        subtotal,
+        tax: calcTax(subtotal),
+        total: calcTotal(subtotal),
+      }));
+    }
     setCart([]);
     setCustomerName('');
     setStep('confirmed');
@@ -501,7 +520,12 @@ export default function KioskPage() {
       )}
 
       {step === 'payment' && (
-        <PaymentModal total={total} onSelect={handlePaymentSelect} onBack={() => setStep('browsing')} />
+        <PaymentModal
+          total={total}
+          referenceId={paymentReferenceId}
+          onSelect={handlePaymentSelect}
+          onBack={() => setStep('browsing')}
+        />
       )}
 
       {/* ── MOBILE layout (hidden on lg+) ─────────────────────────────────── */}

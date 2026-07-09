@@ -6,6 +6,7 @@ import type { Order, OrderItem, PaymentStatus } from '@/types/order';
 import { formatPrice } from '@/utils/pricing';
 import { formatOrderId } from '@/utils/orderStatus';
 import { useOrderStore } from '@/store/orderStore';
+import { buildFallbackOrder } from '@/lib/orderFallback';
 
 interface CartItem {
   product: Product;
@@ -50,11 +51,16 @@ export function OrderPanel({ cart, onUpdateCart, onClear }: Props) {
     onUpdateCart(updated);
   }
 
-  function sendOrder(paymentStatus: PaymentStatus) {
+  async function sendOrder(paymentStatus: PaymentStatus) {
     if (cart.length === 0) return;
     const items = buildOrderItems(cart);
-    const order = addOrder(items, customerName, paymentStatus);
-    setSentOrder(order);
+    try {
+      const order = await addOrder(items, customerName, paymentStatus);
+      setSentOrder(order);
+    } catch (err) {
+      console.error('Failed to save order — showing local confirmation as fallback', err);
+      setSentOrder(buildFallbackOrder({ items, customerName, paymentStatus, source: 'KIOSK', subtotal, tax, total }));
+    }
     onClear();
     setCustomerName('');
     setTimeout(() => setSentOrder(null), 3000);

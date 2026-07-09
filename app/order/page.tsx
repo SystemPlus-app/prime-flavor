@@ -5,10 +5,12 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { categories, products } from '@/data/primeFlavorMenu';
 import { useOrderStore } from '@/store/orderStore';
+import { buildFallbackOrder } from '@/lib/orderFallback';
 import { formatPrice, calcTax, calcTotal } from '@/utils/pricing';
 import { formatOrderId } from '@/utils/orderStatus';
+import { PaymentModal } from '@/components/kiosk/PaymentModal';
 import type { Product } from '@/types/product';
-import type { Order, OrderItem } from '@/types/order';
+import type { Order, OrderItem, PaymentStatus } from '@/types/order';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -49,6 +51,7 @@ const IMG: Record<string, string> = {
 
 function OrderConfirmation({ order, onReset }: { order: Order; onReset: () => void }) {
   const gold = '#c49a0a';
+  const isPaidOnline = order.paymentStatus === 'CARD';
 
   return (
     <div style={{
@@ -77,6 +80,9 @@ function OrderConfirmation({ order, onReset }: { order: Order; onReset: () => vo
         </p>
         <p style={{ fontSize: 14, color: '#7a6a50', marginTop: 8 }}>
           🌐 Online Order — sent to kitchen
+        </p>
+        <p style={{ fontSize: 12, color: isPaidOnline ? '#3da855' : '#7a6a50', marginTop: 4, fontWeight: 700 }}>
+          {isPaidOnline ? '✓ Payment confirmed' : 'Payment due at pickup'}
         </p>
       </div>
 
@@ -110,7 +116,7 @@ function OrderConfirmation({ order, onReset }: { order: Order; onReset: () => vo
         <p style={{ fontSize: 14, color: '#7a6a50', lineHeight: 1.7, marginBottom: 24 }}>
           Your order is heading to our kitchen now.
           Pick up at <strong style={{ color: '#c8b888' }}>360 Hampton Dr, Venice</strong>.
-          Pay when you arrive.
+          {!isPaidOnline && ' Pay when you arrive.'}
         </p>
         <button
           onClick={onReset}
@@ -137,7 +143,8 @@ export default function OrderPage() {
   const [customerName, setCustomerName] = useState('');
   const [showCart, setShowCart] = useState(false);
   const [confirmedOrder, setConfirmedOrder] = useState<Order | null>(null);
-  const [placing, setPlacing] = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
+  const [paymentReferenceId, setPaymentReferenceId] = useState('');
 
   const visibleProducts = activeCategory === 'featured'
     ? products.filter((p) => ['bbq-picanha-plate', 'bbq-picanha-skewer', 'picanha-sandwich', 'special-bbq-sandwich', 'cheese-bread-box', 'guarana'].includes(p.id))
@@ -167,9 +174,14 @@ export default function OrderPage() {
     );
   }
 
-  const placeOrder = useCallback(() => {
-    if (!hasItems || placing) return;
-    setPlacing(true);
+  const openPayment = useCallback(() => {
+    if (!hasItems) return;
+    setPaymentReferenceId(`web-${Date.now()}`);
+    setShowCart(false);
+    setShowPayment(true);
+  }, [hasItems]);
+
+  const handlePaymentSelect = useCallback(async (method: PaymentStatus) => {
     const items: OrderItem[] = cart.map((c) => ({
       id: crypto.randomUUID(),
       productId: c.product.id,
@@ -177,13 +189,26 @@ export default function OrderPage() {
       price: c.product.price,
       quantity: c.quantity,
     }));
-    const order = addOrder(items, customerName.trim() || 'Online Guest', 'UNPAID', 'WEBSITE');
+    try {
+      const order = await addOrder(items, customerName.trim() || 'Online Guest', method, 'WEBSITE');
+      setConfirmedOrder(order);
+    } catch (err) {
+      console.error('Failed to save order — showing local confirmation as fallback', err);
+      const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0);
+      setConfirmedOrder(buildFallbackOrder({
+        items,
+        customerName: customerName.trim() || 'Online Guest',
+        paymentStatus: method,
+        source: 'WEBSITE',
+        subtotal,
+        tax: calcTax(subtotal),
+        total: calcTotal(subtotal),
+      }));
+    }
     setCart([]);
     setCustomerName('');
-    setShowCart(false);
-    setPlacing(false);
-    setConfirmedOrder(order);
-  }, [cart, customerName, hasItems, placing, addOrder]);
+    setShowPayment(false);
+  }, [cart, customerName, addOrder]);
 
   const handleReset = useCallback(() => {
     setConfirmedOrder(null);
@@ -196,6 +221,14 @@ export default function OrderPage() {
 
   return (
     <div style={{ backgroundColor: '#0f0d0b', minHeight: '100vh', color: '#f0e8d0' }}>
+      {showPayment && (
+        <PaymentModal
+          total={total}
+          referenceId={paymentReferenceId}
+          onSelect={handlePaymentSelect}
+          onBack={() => setShowPayment(false)}
+        />
+      )}
 
       {/* ── NAV ── */}
       <header style={{
@@ -435,8 +468,8 @@ export default function OrderPage() {
               )}
 
               <button
-                onClick={placeOrder}
-                disabled={!hasItems || placing}
+                onClick={openPayment}
+                disabled={!hasItems}
                 style={{
                   width: '100%', padding: '16px 24px',
                   backgroundColor: hasItems ? '#c49a0a' : '#2a2420',
@@ -449,11 +482,11 @@ export default function OrderPage() {
                 onMouseEnter={e => { if (hasItems) (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#e8b520'; }}
                 onMouseLeave={e => { if (hasItems) (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#c49a0a'; }}
               >
-                {placing ? 'Placing Order…' : hasItems ? `Place Order · ${formatPrice(total)}` : 'Add items to order'}
+                {hasItems ? `Place Order · ${formatPrice(total)}` : 'Add items to order'}
               </button>
 
               <p style={{ textAlign: 'center', fontSize: 11, color: '#4a3a28', marginTop: 12, letterSpacing: '0.04em' }}>
-                Pay at pickup · 360 Hampton Dr, Venice CA
+                360 Hampton Dr, Venice CA
               </p>
             </div>
           </div>

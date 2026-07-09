@@ -78,6 +78,44 @@ const TESTIMONIALS = [
   },
 ];
 
+const CATERING_PACKAGES = [
+  {
+    name: 'Silver Combo',
+    price: '$65 per person',
+    minimum: 'Minimum 30 people',
+    summary: 'Buffet-style Brazilian BBQ with picanha, sausage, chicken, rice, vinaigrette, farofa, and salad.',
+    details: ['Children under 10 eat free', 'Straightforward buffet setup'],
+  },
+  {
+    name: 'Gold Combo',
+    price: 'From $90 per person',
+    minimum: 'Minimum 15 people',
+    summary: 'Full churrasco spread with meats, sides, sauces, appetizers, grilled vegetables, feijoada, and table decoration.',
+    details: ['3.5 hours of service', 'Children under 10 eat free'],
+  },
+  {
+    name: 'Feijoada Station',
+    price: '$35 per person',
+    minimum: 'Minimum 30 people',
+    summary: 'Rice, feijoada, fried plantains, collard greens, orange slices, farofa, garlic bread, and cheese bread.',
+    details: ['Great add-on station', 'Classic Brazilian comfort food'],
+  },
+  {
+    name: 'Charcuterie Box',
+    price: '$230 - $300',
+    minimum: 'Serves 8 to 15 people',
+    summary: 'Small box serves 8 to 10 people for $230. Large box serves 15 people for $300.',
+    details: ['Ideal for grazing tables', 'Works well with BBQ service'],
+  },
+];
+
+const GOLD_COMBO_PRICING = [
+  ['15 Guests', '$150 per person'],
+  ['20 Guests', '$120 per person'],
+  ['25 Guests', '$110 per person'],
+  ['30+ Guests', '$90 per person'],
+];
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const S = {
@@ -550,7 +588,7 @@ export default function WebsitePage() {
       {/* ── CATERING ────────────────────────────────────────────────────── */}
       <section id="catering" style={{ padding: '100px 0' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px' }}>
-          <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 72, alignItems: 'center' }}>
+          <div className="grid grid-cols-1 lg:grid-cols-2" style={{ gap: 72, alignItems: 'start' }}>
 
             {/* Text */}
             <div>
@@ -569,19 +607,83 @@ export default function WebsitePage() {
                 everything — setup, service, and spectacular food.
               </p>
 
-              <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 40px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-                {[
-                  'Private Parties & Celebrations',
-                  'Corporate Lunch & Team Catering',
-                  'Beach & Outdoor BBQ Events',
-                  'Custom Group Menu Options',
-                ].map((f) => (
-                  <li key={f} style={{ display: 'flex', alignItems: 'center', gap: 14, color: '#b8a880', fontSize: 15 }}>
-                    <span style={{ color: S.gold, fontSize: 14, flexShrink: 0 }}>✦</span>
-                    {f}
-                  </li>
+              <div className="grid grid-cols-1 sm:grid-cols-2" style={{ gap: 14, marginBottom: 32 }}>
+                {CATERING_PACKAGES.map((pkg) => (
+                  <div key={pkg.name} style={{
+                    backgroundColor: S.siteSurface,
+                    border: `1px solid ${S.siteBorder}`,
+                    borderRadius: 6,
+                    padding: '22px 22px 20px',
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start', marginBottom: 12 }}>
+                      <h3 style={{
+                        fontSize: 18,
+                        lineHeight: 1.15,
+                        color: S.siteText,
+                        fontWeight: 800,
+                        fontFamily: displayFont,
+                      }}>
+                        {pkg.name}
+                      </h3>
+                      <span style={{
+                        color: S.orange,
+                        fontSize: 13,
+                        lineHeight: 1.35,
+                        fontWeight: 900,
+                        textAlign: 'right',
+                        flexShrink: 0,
+                      }}>
+                        {pkg.price}
+                      </span>
+                    </div>
+                    <div style={{
+                      color: S.gold,
+                      fontSize: 10,
+                      letterSpacing: '0.14em',
+                      textTransform: 'uppercase',
+                      fontWeight: 800,
+                      marginBottom: 12,
+                    }}>
+                      {pkg.minimum}
+                    </div>
+                    <p style={{ color: '#9f9072', fontSize: 13, lineHeight: 1.65, marginBottom: 14 }}>
+                      {pkg.summary}
+                    </p>
+                    <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {pkg.details.map((detail) => (
+                        <li key={detail} style={{ display: 'flex', gap: 9, color: '#b8a880', fontSize: 12, lineHeight: 1.45 }}>
+                          <span style={{ color: S.gold, flexShrink: 0 }}>+</span>
+                          {detail}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 ))}
-              </ul>
+              </div>
+
+              <div style={{
+                border: `1px solid rgba(196,154,10,0.28)`,
+                backgroundColor: 'rgba(196,154,10,0.06)',
+                borderRadius: 6,
+                padding: '22px 24px',
+                marginBottom: 34,
+              }}>
+                <div style={{ fontSize: 10, letterSpacing: '0.22em', textTransform: 'uppercase', color: S.gold, fontWeight: 800, marginBottom: 16 }}>
+                  Gold Combo Pricing
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2" style={{ gap: '10px 28px', marginBottom: 18 }}>
+                  {GOLD_COMBO_PRICING.map(([guests, price]) => (
+                    <div key={guests} style={{ display: 'flex', justifyContent: 'space-between', gap: 16, borderBottom: `1px solid ${S.siteBorder}`, paddingBottom: 9 }}>
+                      <span style={{ color: S.siteText, fontSize: 14, fontWeight: 800 }}>{guests}</span>
+                      <span style={{ color: '#c8b890', fontSize: 14 }}>{price}</span>
+                    </div>
+                  ))}
+                </div>
+                <p style={{ color: S.siteDim, fontSize: 13, lineHeight: 1.65 }}>
+                  A 50% deposit is due when ordering, with the remaining 50% due on the event day.
+                  Please schedule catering at least 7 days in advance. Questions and replacements can be discussed.
+                </p>
+              </div>
 
               <a
                 href="mailto:primeflavorbrasil@gmail.com?subject=Catering%20Inquiry%20—%20Prime%20Flavor"
@@ -600,7 +702,7 @@ export default function WebsitePage() {
             </div>
 
             {/* Photo */}
-            <div style={{ position: 'relative', borderRadius: 6, overflow: 'hidden', aspectRatio: '4/5' }}>
+            <div style={{ position: 'relative', borderRadius: 6, overflow: 'hidden', aspectRatio: '4/5', minHeight: 520 }}>
               <Image
                 src="/site/site-catering.png"
                 alt="Prime Flavor catering spread"
