@@ -7,6 +7,7 @@ import { getSupabase } from '@/lib/supabase';
 import { mapOrderRow } from '@/lib/orderMapper';
 
 type Availability = Record<string, boolean>;
+type Visibility = Record<string, boolean>;
 
 function upsertOrder(list: Order[], order: Order): Order[] {
   const idx = list.findIndex((o) => o.id === order.id);
@@ -19,10 +20,12 @@ function upsertOrder(list: Order[], order: Order): Order[] {
 interface OrderStoreValue {
   orders: Order[];
   availability: Availability;
+  visibility: Visibility;
   addOrder: (items: OrderItem[], customerName?: string, paymentStatus?: PaymentStatus, source?: OrderSource, notes?: string) => Promise<Order>;
   updateStatus: (id: string, status: OrderStatus) => Promise<void>;
   updatePayment: (id: string, paymentStatus: PaymentStatus) => Promise<void>;
   toggleAvailable: (productId: string) => Promise<void>;
+  toggleVisible: (productId: string) => Promise<void>;
 }
 
 const OrderContext = createContext<OrderStoreValue | null>(null);
@@ -30,6 +33,7 @@ const OrderContext = createContext<OrderStoreValue | null>(null);
 export function OrderStoreProvider({ children }: { children: React.ReactNode }) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [availability, setAvailability] = useState<Availability>({});
+  const [visibility, setVisibility] = useState<Visibility>({});
 
   useEffect(() => {
     const supabase = getSupabase();
@@ -48,9 +52,14 @@ export function OrderStoreProvider({ children }: { children: React.ReactNode }) 
       .select('*')
       .then(({ data, error }) => {
         if (error) { console.error('Failed to load availability', error); return; }
-        const map: Availability = {};
-        for (const row of data ?? []) map[row.product_id as string] = row.available as boolean;
-        setAvailability(map);
+        const availMap: Availability = {};
+        const visMap: Visibility = {};
+        for (const row of data ?? []) {
+          availMap[row.product_id as string] = row.available as boolean;
+          visMap[row.product_id as string] = (row.visible as boolean) ?? true;
+        }
+        setAvailability(availMap);
+        setVisibility(visMap);
       });
 
     const channel = supabase
@@ -61,8 +70,9 @@ export function OrderStoreProvider({ children }: { children: React.ReactNode }) 
       })
       .on('postgres_changes', { event: '*', schema: 'prime_flavor', table: 'product_availability' }, (payload) => {
         if (payload.eventType === 'DELETE') return;
-        const row = payload.new as { product_id: string; available: boolean };
+        const row = payload.new as { product_id: string; available: boolean; visible?: boolean };
         setAvailability((prev) => ({ ...prev, [row.product_id]: row.available }));
+        setVisibility((prev) => ({ ...prev, [row.product_id]: row.visible ?? true }));
       })
       .subscribe();
 
@@ -123,8 +133,23 @@ export function OrderStoreProvider({ children }: { children: React.ReactNode }) 
     }
   }, [availability]);
 
+  const toggleVisible = useCallback(async (productId: string) => {
+    const current = visibility[productId] ?? true;
+    const next = !current;
+    setVisibility((prev) => ({ ...prev, [productId]: next }));
+    const res = await fetch(`/api/availability/${productId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ visible: next }),
+    });
+    if (!res.ok) {
+      console.error('Failed to update visibility');
+      setVisibility((prev) => ({ ...prev, [productId]: current }));
+    }
+  }, [visibility]);
+
   return (
-    <OrderContext.Provider value={{ orders, availability, addOrder, updateStatus, updatePayment, toggleAvailable }}>
+    <OrderContext.Provider value={{ orders, availability, visibility, addOrder, updateStatus, updatePayment, toggleAvailable, toggleVisible }}>
       {children}
     </OrderContext.Provider>
   );

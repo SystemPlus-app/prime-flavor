@@ -25,6 +25,7 @@ create table if not exists prime_flavor.orders (
 create table if not exists prime_flavor.product_availability (
   product_id text primary key,
   available boolean not null default true,
+  visible boolean not null default true,
   updated_at timestamptz not null default now()
 );
 

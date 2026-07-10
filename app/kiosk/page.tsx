@@ -363,7 +363,7 @@ function MobileCartDrawer({ cart, show, customerName, onNameChange, onAdjust, on
 // ── Main kiosk page ───────────────────────────────────────────────────────────
 
 export default function KioskPage() {
-  const { addOrder, availability } = useOrderStore();
+  const { addOrder, availability, visibility } = useOrderStore();
 
   const [step, setStep] = useState<KioskStep>('browsing');
   const [category, setCategory] = useState('featured');
@@ -382,7 +382,8 @@ export default function KioskPage() {
   const desktopGridRef = useRef<HTMLDivElement>(null);
   const mobileGridRef = useRef<HTMLDivElement>(null);
 
-  const products = withAvailability(getProductsByCategory(category), availability);
+  const products = withAvailability(getProductsByCategory(category), availability)
+    .filter((p) => visibility[p.id] !== false);
 
   useEffect(() => {
     desktopGridRef.current?.scrollTo({ top: 0, behavior: 'smooth' });

@@ -13,7 +13,7 @@ import { formatPrice } from '@/utils/pricing';
 type AdminTab = 'orders' | 'menu';
 
 function AdminDashboard() {
-  const { orders, availability, toggleAvailable } = useOrderStore();
+  const { orders, availability, visibility, toggleAvailable, toggleVisible } = useOrderStore();
   const [tab, setTab] = useState<AdminTab>('orders');
   const menuProducts = withAvailability(allProducts, availability);
 
@@ -77,7 +77,7 @@ function AdminDashboard() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border bg-card">
-                  {['Item', 'Category', 'Price', 'Status'].map((h) => (
+                  {['Item', 'Category', 'Price', 'Status', 'Kiosk Menu'].map((h) => (
                     <th
                       key={h}
                       className="text-left px-4 py-3 text-muted text-[11px] font-bold uppercase tracking-wider"
@@ -103,6 +103,19 @@ function AdminDashboard() {
                         }`}
                       >
                         {p.available ? 'Available' : 'Sold Out'}
+                      </button>
+                    </td>
+                    <td className="px-4 py-3">
+                      <button
+                        onClick={() => toggleVisible(p.id)}
+                        title="Hide temporarily for events without pulling the item permanently"
+                        className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wide transition-colors cursor-pointer ${
+                          visibility[p.id] !== false
+                            ? 'bg-[#1a2a3a] text-[#5ca3d0] hover:bg-[#20344a]'
+                            : 'bg-[#332a1a] text-[#d0a35c] hover:bg-[#4a3a20]'
+                        }`}
+                      >
+                        {visibility[p.id] !== false ? 'Shown' : 'Hidden'}
                       </button>
                     </td>
                   </tr>
