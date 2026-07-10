@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import type { Order } from '@/types/order';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { formatPrice } from '@/utils/pricing';
@@ -15,6 +15,27 @@ interface Props {
 
 function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+}
+
+function formatDay(iso: string): string {
+  const date = new Date(iso);
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+
+  if (date.toDateString() === today.toDateString()) return 'Today';
+  if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
+
+  return date.toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    year: date.getFullYear() === today.getFullYear() ? undefined : 'numeric',
+  });
+}
+
+function dayKey(iso: string): string {
+  return new Date(iso).toDateString();
 }
 
 function itemsSummary(order: Order): string {
@@ -48,6 +69,17 @@ export function OrderTable({ orders }: Props) {
     { id: 'paid', label: 'Paid' },
     { id: 'completed', label: 'Completed' },
   ];
+
+  const grouped = filtered.reduce<{ key: string; label: string; orders: Order[] }[]>((groups, order) => {
+    const key = dayKey(order.createdAt);
+    const existing = groups.find((group) => group.key === key);
+    if (existing) {
+      existing.orders.push(order);
+    } else {
+      groups.push({ key, label: formatDay(order.createdAt), orders: [order] });
+    }
+    return groups;
+  }, []);
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden px-4 pb-4">
@@ -95,50 +127,62 @@ export function OrderTable({ orders }: Props) {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((order) => (
-              <tr
-                key={order.id}
-                className="border-b border-border hover:bg-card/50 transition-colors"
-              >
-                <td className="px-4 py-3 font-mono font-bold text-cream text-xs">
-                  {formatOrderId(order.orderNumber)}
-                </td>
-                <td className="px-4 py-3 text-cream-dim text-xs">{formatTime(order.createdAt)}</td>
-                <td className="px-4 py-3 font-semibold text-cream">{order.customerName ?? 'Walk-in'}</td>
-                <td className="px-4 py-3 text-cream-dim max-w-[200px] truncate">{itemsSummary(order)}</td>
-                <td className="px-4 py-3 font-bold text-cream">{formatPrice(order.total)}</td>
-                <td className="px-4 py-3">
-                  <StatusBadge status={order.status} />
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-1">
-                    {order.status === 'NEW' && (
-                      <button
-                        onClick={() => updateStatus(order.id, 'PREPARING')}
-                        className="text-[10px] bg-[#3a2a08] text-[#d4a530] border border-[#d4a53050] px-2 py-1 rounded font-bold hover:bg-[#4a3a10] transition-colors"
-                      >
-                        Start
-                      </button>
-                    )}
-                    {order.status === 'PREPARING' && (
-                      <button
-                        onClick={() => updateStatus(order.id, 'READY')}
-                        className="text-[10px] bg-[#0a3018] text-[#3da855] border border-[#3da85550] px-2 py-1 rounded font-bold hover:bg-[#143a22] transition-colors"
-                      >
-                        Ready
-                      </button>
-                    )}
-                    {order.status === 'READY' && (
-                      <button
-                        onClick={() => updateStatus(order.id, 'COMPLETED')}
-                        className="text-[10px] bg-[#1a2a3a] text-cream-dim border border-border px-2 py-1 rounded font-bold hover:bg-border transition-colors"
-                      >
-                        Complete
-                      </button>
-                    )}
-                  </div>
-                </td>
-              </tr>
+            {grouped.map((group) => (
+              <Fragment key={group.key}>
+                <tr key={`${group.key}-header`} className="bg-base/95">
+                  <td colSpan={7} className="px-4 py-2.5 border-b border-border">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-orange font-extrabold uppercase tracking-wider text-xs">{group.label}</span>
+                      <span className="text-muted text-xs font-bold">{group.orders.length} orders</span>
+                    </div>
+                  </td>
+                </tr>
+                {group.orders.map((order) => (
+                  <tr
+                    key={order.id}
+                    className="border-b border-border hover:bg-card/50 transition-colors"
+                  >
+                    <td className="px-4 py-3 font-mono font-bold text-cream text-xs">
+                      {formatOrderId(order.orderNumber)}
+                    </td>
+                    <td className="px-4 py-3 text-cream-dim text-xs">{formatTime(order.createdAt)}</td>
+                    <td className="px-4 py-3 font-semibold text-cream">{order.customerName ?? 'Walk-in'}</td>
+                    <td className="px-4 py-3 text-cream-dim max-w-[200px] truncate">{itemsSummary(order)}</td>
+                    <td className="px-4 py-3 font-bold text-cream">{formatPrice(order.total)}</td>
+                    <td className="px-4 py-3">
+                      <StatusBadge status={order.status} />
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1">
+                        {order.status === 'NEW' && (
+                          <button
+                            onClick={() => updateStatus(order.id, 'PREPARING')}
+                            className="text-[10px] bg-[#3a2a08] text-[#d4a530] border border-[#d4a53050] px-2 py-1 rounded font-bold hover:bg-[#4a3a10] transition-colors"
+                          >
+                            Start
+                          </button>
+                        )}
+                        {order.status === 'PREPARING' && (
+                          <button
+                            onClick={() => updateStatus(order.id, 'READY')}
+                            className="text-[10px] bg-[#0a3018] text-[#3da855] border border-[#3da85550] px-2 py-1 rounded font-bold hover:bg-[#143a22] transition-colors"
+                          >
+                            Ready
+                          </button>
+                        )}
+                        {order.status === 'READY' && (
+                          <button
+                            onClick={() => updateStatus(order.id, 'COMPLETED')}
+                            className="text-[10px] bg-[#1a2a3a] text-cream-dim border border-border px-2 py-1 rounded font-bold hover:bg-border transition-colors"
+                          >
+                            Complete
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </Fragment>
             ))}
             {filtered.length === 0 && (
               <tr>

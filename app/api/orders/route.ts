@@ -5,14 +5,14 @@ import { calcTax, calcTotal } from '@/utils/pricing';
 import type { OrderItem, OrderSource, PaymentStatus } from '@/types/order';
 
 export async function POST(req: NextRequest) {
-  let body: { items?: OrderItem[]; customerName?: string; paymentStatus?: PaymentStatus; source?: OrderSource };
+  let body: { items?: OrderItem[]; customerName?: string; paymentStatus?: PaymentStatus; source?: OrderSource; notes?: string };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  const { items, customerName, paymentStatus = 'UNPAID', source = 'KIOSK' } = body;
+  const { items, customerName, paymentStatus = 'UNPAID', source = 'KIOSK', notes } = body;
 
   if (!Array.isArray(items) || items.length === 0) {
     return NextResponse.json({ error: 'items must be a non-empty array' }, { status: 400 });
@@ -31,6 +31,7 @@ export async function POST(req: NextRequest) {
       payment_status: paymentStatus,
       status: 'NEW',
       source,
+      notes: notes?.trim() || null,
     })
     .select()
     .single();

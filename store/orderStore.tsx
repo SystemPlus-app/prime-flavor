@@ -19,7 +19,7 @@ function upsertOrder(list: Order[], order: Order): Order[] {
 interface OrderStoreValue {
   orders: Order[];
   availability: Availability;
-  addOrder: (items: OrderItem[], customerName?: string, paymentStatus?: PaymentStatus, source?: OrderSource) => Promise<Order>;
+  addOrder: (items: OrderItem[], customerName?: string, paymentStatus?: PaymentStatus, source?: OrderSource, notes?: string) => Promise<Order>;
   updateStatus: (id: string, status: OrderStatus) => Promise<void>;
   updatePayment: (id: string, paymentStatus: PaymentStatus) => Promise<void>;
   toggleAvailable: (productId: string) => Promise<void>;
@@ -72,11 +72,11 @@ export function OrderStoreProvider({ children }: { children: React.ReactNode }) 
   }, []);
 
   const addOrder = useCallback(
-    async (items: OrderItem[], customerName?: string, paymentStatus: PaymentStatus = 'UNPAID', source: OrderSource = 'KIOSK'): Promise<Order> => {
+    async (items: OrderItem[], customerName?: string, paymentStatus: PaymentStatus = 'UNPAID', source: OrderSource = 'KIOSK', notes?: string): Promise<Order> => {
       const res = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items, customerName, paymentStatus, source }),
+        body: JSON.stringify({ items, customerName, paymentStatus, source, notes }),
       });
       if (!res.ok) throw new Error('Failed to create order');
       const { order } = (await res.json()) as { order: Order };

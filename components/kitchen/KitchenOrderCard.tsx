@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { Order, OrderStatus } from '@/types/order';
+import type { Order, OrderSource, OrderStatus } from '@/types/order';
 import { formatElapsed, getElapsedSeconds, isLate } from '@/utils/orderStatus';
 import { useOrderStore } from '@/store/orderStore';
 
@@ -40,6 +40,25 @@ function statusLabel(status: OrderStatus, late: boolean): { text: string; color:
   return { text: status, color: 'text-muted' };
 }
 
+function sourceBadge(source: OrderSource): { text: string; className: string } {
+  if (source === 'DOORDASH') {
+    return { text: 'DoorDash', className: 'bg-[#3a1010] border-[#ff4f4f]/50 text-[#ff7b7b]' };
+  }
+  if (source === 'UBER_EATS') {
+    return { text: 'Uber Eats', className: 'bg-[#082615] border-[#30d070]/50 text-[#65e896]' };
+  }
+  if (source === 'GRUBHUB') {
+    return { text: 'Grubhub', className: 'bg-[#2b1208] border-[#ff8a3d]/50 text-[#ffac70]' };
+  }
+  if (source === 'PHONE') {
+    return { text: 'Phone', className: 'bg-[#101f3a] border-[#5a8dff]/50 text-[#8fb0ff]' };
+  }
+  if (source === 'WEBSITE') {
+    return { text: 'Online', className: 'bg-blue-950/60 border-blue-500/40 text-blue-300' };
+  }
+  return { text: 'Kiosk', className: 'bg-orange-dim/40 border-orange/20 text-orange' };
+}
+
 export function KitchenOrderCard({ order }: Props) {
   const { updateStatus } = useOrderStore();
   const [elapsed, setElapsed] = useState(getElapsedSeconds(order.createdAt));
@@ -51,6 +70,7 @@ export function KitchenOrderCard({ order }: Props) {
 
   const late = isLate(order.createdAt, 10);
   const label = statusLabel(order.status, late);
+  const source = sourceBadge(order.source);
 
   return (
     <div className={`flex flex-col rounded-xl border bg-card overflow-hidden transition-shadow duration-500 ${cardClasses(order.status, late)}`}>
@@ -66,13 +86,12 @@ export function KitchenOrderCard({ order }: Props) {
           <span className={`text-[10px] font-extrabold uppercase tracking-widest ${label.color}`}>
             {label.text}
           </span>
-          {order.source === 'WEBSITE' ? (
-            <span className="text-[9px] bg-blue-950/60 border border-blue-500/40 text-blue-300 font-extrabold uppercase tracking-widest px-2 py-0.5 rounded">
-              🌐 Online
-            </span>
-          ) : (
-            <span className="text-[9px] bg-orange-dim/40 border border-orange/20 text-orange font-extrabold uppercase tracking-widest px-2 py-0.5 rounded">
-              Kiosk
+          <span className={`text-[9px] border font-extrabold uppercase tracking-widest px-2 py-0.5 rounded ${source.className}`}>
+            {source.text}
+          </span>
+          {order.paymentStatus === 'UNPAID' && (
+            <span className="text-[9px] bg-[#4a120f] border border-[#ff6060]/40 text-[#ff8a8a] font-extrabold uppercase tracking-widest px-2 py-0.5 rounded">
+              Needs payment
             </span>
           )}
         </div>
@@ -90,6 +109,11 @@ export function KitchenOrderCard({ order }: Props) {
 
       {/* Items */}
       <div className="flex-1 px-4 py-3 space-y-2.5 overflow-y-auto min-h-[80px]">
+        {order.notes && (
+          <div className="rounded-lg border border-[#d4a530]/30 bg-[#3a2a08]/35 px-3 py-2 text-[#e8c66a] text-xs font-semibold">
+            {order.notes}
+          </div>
+        )}
         {order.items.map((item) => (
           <div key={item.id} className="flex items-start gap-3">
             <span className="text-orange font-extrabold text-base leading-tight w-8 shrink-0 tabular-nums">
