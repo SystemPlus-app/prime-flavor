@@ -136,7 +136,8 @@ export const customizations: Record<string, CustomizationGroup[]> = {
   'picanha-sandwich':              [breadChoice, meatDoneness, sandwichAddons, sandwichMods],
   'picanha-cheese-bread':          [meatDoneness, sandwichAddons, sandwichMods],
   'chicken-bacon-sandwich':        [breadChoice, heatLevel, sandwichAddons, sandwichMods],
-  'sausage-sandwich':              [breadChoice, sandwichAddons, sandwichMods],
+  'chicken-sandwich':               [breadChoice, heatLevel, sandwichAddons, sandwichMods],
+  'sausage-sandwich':               [breadChoice, sandwichAddons, sandwichMods],
   'sausage-cheese-bread-sandwich': [sandwichAddons, sandwichMods],
   'special-bbq-sandwich':          [breadChoice, meatDoneness, sandwichAddons, sandwichMods],
 

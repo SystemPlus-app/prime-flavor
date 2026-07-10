@@ -15,7 +15,7 @@ interface Props {
 const productEmoji: Record<string, string> = {
   'bbq-picanha-plate': '🥩', 'bbq-chicken-plate': '🍗', 'bbq-chicken-bacon-plate': '🥓',
   'bbq-sausage-plate': '🌭', 'prime-bbq-plate': '🔥',
-  'picanha-sandwich': '🥩', 'picanha-cheese-bread': '🧀', 'chicken-bacon-sandwich': '🥓',
+  'picanha-sandwich': '🥩', 'picanha-cheese-bread': '🧀', 'chicken-bacon-sandwich': '🥓', 'chicken-sandwich': '🍗',
   'sausage-sandwich': '🌭', 'sausage-cheese-bread-sandwich': '🌭', 'special-bbq-sandwich': '🌟',
   'bbq-picanha-skewer': '🥩', 'bbq-chicken-skewer': '🍗', 'bbq-chicken-bacon-skewer': '🥓',
   'bbq-sausage-skewer': '🌭', 'queijo-coalho-skewer': '🧀', 'prime-mixed-skewers': '🍢',

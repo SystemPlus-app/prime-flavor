@@ -54,6 +54,7 @@ const productEmoji: Record<string, string> = {
   'picanha-sandwich':        '🥩',
   'picanha-cheese-bread':    '🧀',
   'chicken-bacon-sandwich':  '🥓',
+  'chicken-sandwich':        '🍗',
   'sausage-sandwich':        '🌭',
   'sausage-cheese-bread-sandwich':'🌭',
   'special-bbq-sandwich':    '🌟',
@@ -66,6 +67,7 @@ const productEmoji: Record<string, string> = {
   'caesar-salad':            '🥗',
   guarana:                   '🧃',
   coke:                      '🥤',
+  'coke-zero':               '🥤',
 };
 
 // Per-product cinematic gradient (radial, warm lit from above)
