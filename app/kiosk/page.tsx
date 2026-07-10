@@ -414,14 +414,19 @@ export default function KioskPage() {
   function handleMobileScroll(e: React.UIEvent<HTMLDivElement>) {
     const el = e.currentTarget;
     const scrollable = el.scrollHeight - el.clientHeight;
-    if (scrollable < 80 || autoAdvancingRef.current) return;
-    const distanceFromBottom = scrollable - el.scrollTop;
-    if (distanceFromBottom < 40) {
-      const idx = categoryIds.indexOf(category);
-      if (idx < categoryIds.length - 1) {
-        autoAdvancingRef.current = true;
-        setCategory(categoryIds[idx + 1]);
-      }
+
+    // Nothing to scroll, or scrolled back away from the bottom: always re-arm.
+    // (Position-based, not timer-based, so it can never get permanently stuck.)
+    if (scrollable < 80 || el.scrollTop < scrollable - 40) {
+      autoAdvancingRef.current = false;
+      return;
+    }
+    if (autoAdvancingRef.current) return;
+
+    const idx = categoryIds.indexOf(category);
+    if (idx < categoryIds.length - 1) {
+      autoAdvancingRef.current = true;
+      setCategory(categoryIds[idx + 1]);
     }
   }
 
@@ -436,8 +441,6 @@ export default function KioskPage() {
   useEffect(() => {
     desktopGridRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
     mobileGridRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
-    const timer = setTimeout(() => { autoAdvancingRef.current = false; }, 500);
-    return () => clearTimeout(timer);
   }, [category]);
 
   // Close mobile cart when a modal opens
