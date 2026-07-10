@@ -32,7 +32,7 @@ export function KioskSidebar({ active, onSelect, onStaffActivate }: Props) {
   }
 
   return (
-    <aside className="w-[128px] shrink-0 flex flex-col bg-sidebar border-r border-border overflow-hidden">
+    <aside className="w-[168px] shrink-0 flex flex-col bg-sidebar border-r border-border overflow-hidden">
       {/* Logo — hidden long-press staff trigger */}
       <div
         onMouseDown={startPress}
@@ -63,7 +63,7 @@ export function KioskSidebar({ active, onSelect, onStaffActivate }: Props) {
               key={cat.id}
               onClick={() => onSelect(cat.id)}
               className={`
-                relative flex flex-col items-center gap-1.5 py-4 px-2 transition-all duration-150
+                relative flex flex-col items-center gap-2 py-5 px-2 transition-all duration-150
                 ${isActive
                   ? 'bg-orange text-white'
                   : 'text-cream-dim hover:bg-card hover:text-cream'
@@ -71,10 +71,10 @@ export function KioskSidebar({ active, onSelect, onStaffActivate }: Props) {
               `}
             >
               {isActive && (
-                <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-white/40 rounded-r" />
+                <span className="absolute left-0 top-0 bottom-0 w-[4px] bg-white/40 rounded-r" />
               )}
-              <span className="text-2xl leading-none">{cat.icon}</span>
-              <span className="text-[10px] font-bold tracking-wider uppercase leading-tight text-center">
+              <span className="text-3xl leading-none">{cat.icon}</span>
+              <span className="text-xs font-bold tracking-wider uppercase leading-tight text-center">
                 {cat.name}
               </span>
             </button>

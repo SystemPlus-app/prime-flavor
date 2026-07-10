@@ -117,20 +117,20 @@ function OrderConfirmation({ order, onReset }: { order: Order; onReset: () => vo
 function MobileCategoryBar({ active, onSelect }: { active: string; onSelect: (id: string) => void }) {
   return (
     <div
-      className="flex overflow-x-auto gap-2 px-3 py-2.5 border-b border-border shrink-0 bg-sidebar"
+      className="flex overflow-x-auto gap-2.5 px-4 py-3.5 border-b border-border shrink-0 bg-sidebar"
       style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
     >
       {categories.map((cat) => (
         <button
           key={cat.id}
           onClick={() => onSelect(cat.id)}
-          className={`flex items-center gap-1.5 px-3 py-2 rounded-xl shrink-0 font-bold text-xs uppercase tracking-wide transition-colors ${
+          className={`flex items-center gap-2 px-5 py-3.5 rounded-2xl shrink-0 font-extrabold text-base uppercase tracking-wide transition-colors ${
             active === cat.id
               ? 'bg-orange text-white'
               : 'bg-card border border-border text-cream-dim'
           }`}
         >
-          <span className="text-sm leading-none">{cat.icon}</span>
+          <span className="text-2xl leading-none">{cat.icon}</span>
           <span>{cat.name}</span>
         </button>
       ))}
@@ -382,6 +382,49 @@ export default function KioskPage() {
   const desktopGridRef = useRef<HTMLDivElement>(null);
   const mobileGridRef = useRef<HTMLDivElement>(null);
 
+  // Swipe-to-change-category and scroll-to-end auto-advance (mobile/portrait grid only)
+  const categoryIds = categories.map((c) => c.id);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const autoAdvancingRef = useRef(false);
+
+  function goToAdjacentCategory(direction: 1 | -1) {
+    const idx = categoryIds.indexOf(category);
+    const nextIdx = idx + direction;
+    if (nextIdx >= 0 && nextIdx < categoryIds.length) setCategory(categoryIds[nextIdx]);
+  }
+
+  function handleMobileTouchStart(e: React.TouchEvent) {
+    const t = e.touches[0];
+    touchStartRef.current = { x: t.clientX, y: t.clientY };
+  }
+
+  function handleMobileTouchEnd(e: React.TouchEvent) {
+    const start = touchStartRef.current;
+    touchStartRef.current = null;
+    if (!start) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - start.x;
+    const dy = t.clientY - start.y;
+    const SWIPE_THRESHOLD = 60;
+    if (Math.abs(dx) > SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      goToAdjacentCategory(dx < 0 ? 1 : -1);
+    }
+  }
+
+  function handleMobileScroll(e: React.UIEvent<HTMLDivElement>) {
+    const el = e.currentTarget;
+    const scrollable = el.scrollHeight - el.clientHeight;
+    if (scrollable < 80 || autoAdvancingRef.current) return;
+    const distanceFromBottom = scrollable - el.scrollTop;
+    if (distanceFromBottom < 40) {
+      const idx = categoryIds.indexOf(category);
+      if (idx < categoryIds.length - 1) {
+        autoAdvancingRef.current = true;
+        setCategory(categoryIds[idx + 1]);
+      }
+    }
+  }
+
   const customForCategory = category === 'featured'
     ? customProducts.filter((p) => p.popular)
     : customProducts.filter((p) => p.category === category);
@@ -393,6 +436,8 @@ export default function KioskPage() {
   useEffect(() => {
     desktopGridRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
     mobileGridRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+    const timer = setTimeout(() => { autoAdvancingRef.current = false; }, 500);
+    return () => clearTimeout(timer);
   }, [category]);
 
   // Close mobile cart when a modal opens
@@ -569,7 +614,13 @@ export default function KioskPage() {
         <MobileCategoryBar active={category} onSelect={setCategory} />
 
         {/* Product grid */}
-        <div ref={mobileGridRef} className="flex-1 overflow-y-auto">
+        <div
+          ref={mobileGridRef}
+          className="flex-1 overflow-y-auto"
+          onTouchStart={handleMobileTouchStart}
+          onTouchEnd={handleMobileTouchEnd}
+          onScroll={handleMobileScroll}
+        >
           <div className="p-3 grid grid-cols-2 gap-3">
             {products.map((product) => (
               <KioskProductCard
