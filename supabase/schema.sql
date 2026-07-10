@@ -26,6 +26,7 @@ create table if not exists prime_flavor.product_availability (
   product_id text primary key,
   available boolean not null default true,
   visible boolean not null default true,
+  price numeric(10,2),
   updated_at timestamptz not null default now()
 );
 

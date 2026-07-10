@@ -8,6 +8,7 @@ import { mapOrderRow } from '@/lib/orderMapper';
 
 type Availability = Record<string, boolean>;
 type Visibility = Record<string, boolean>;
+type PriceOverrides = Record<string, number>;
 
 function upsertOrder(list: Order[], order: Order): Order[] {
   const idx = list.findIndex((o) => o.id === order.id);
@@ -21,11 +22,13 @@ interface OrderStoreValue {
   orders: Order[];
   availability: Availability;
   visibility: Visibility;
+  priceOverrides: PriceOverrides;
   addOrder: (items: OrderItem[], customerName?: string, paymentStatus?: PaymentStatus, source?: OrderSource, notes?: string) => Promise<Order>;
   updateStatus: (id: string, status: OrderStatus) => Promise<void>;
   updatePayment: (id: string, paymentStatus: PaymentStatus) => Promise<void>;
   toggleAvailable: (productId: string) => Promise<void>;
   toggleVisible: (productId: string) => Promise<void>;
+  updatePrice: (productId: string, price: number) => Promise<void>;
 }
 
 const OrderContext = createContext<OrderStoreValue | null>(null);
@@ -34,6 +37,7 @@ export function OrderStoreProvider({ children }: { children: React.ReactNode }) 
   const [orders, setOrders] = useState<Order[]>([]);
   const [availability, setAvailability] = useState<Availability>({});
   const [visibility, setVisibility] = useState<Visibility>({});
+  const [priceOverrides, setPriceOverrides] = useState<PriceOverrides>({});
 
   useEffect(() => {
     const supabase = getSupabase();
@@ -54,12 +58,17 @@ export function OrderStoreProvider({ children }: { children: React.ReactNode }) 
         if (error) { console.error('Failed to load availability', error); return; }
         const availMap: Availability = {};
         const visMap: Visibility = {};
+        const priceMap: PriceOverrides = {};
         for (const row of data ?? []) {
           availMap[row.product_id as string] = row.available as boolean;
           visMap[row.product_id as string] = (row.visible as boolean) ?? true;
+          if (row.price !== null && row.price !== undefined) {
+            priceMap[row.product_id as string] = Number(row.price);
+          }
         }
         setAvailability(availMap);
         setVisibility(visMap);
+        setPriceOverrides(priceMap);
       });
 
     const channel = supabase
@@ -70,9 +79,12 @@ export function OrderStoreProvider({ children }: { children: React.ReactNode }) 
       })
       .on('postgres_changes', { event: '*', schema: 'prime_flavor', table: 'product_availability' }, (payload) => {
         if (payload.eventType === 'DELETE') return;
-        const row = payload.new as { product_id: string; available: boolean; visible?: boolean };
+        const row = payload.new as { product_id: string; available: boolean; visible?: boolean; price?: number | null };
         setAvailability((prev) => ({ ...prev, [row.product_id]: row.available }));
         setVisibility((prev) => ({ ...prev, [row.product_id]: row.visible ?? true }));
+        if (row.price !== null && row.price !== undefined) {
+          setPriceOverrides((prev) => ({ ...prev, [row.product_id]: Number(row.price) }));
+        }
       })
       .subscribe();
 
@@ -148,8 +160,27 @@ export function OrderStoreProvider({ children }: { children: React.ReactNode }) 
     }
   }, [visibility]);
 
+  const updatePrice = useCallback(async (productId: string, price: number) => {
+    const current = priceOverrides[productId] ?? menuProducts.find((p) => p.id === productId)?.price;
+    setPriceOverrides((prev) => ({ ...prev, [productId]: price }));
+    const res = await fetch(`/api/availability/${productId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ price }),
+    });
+    if (!res.ok) {
+      console.error('Failed to update price');
+      setPriceOverrides((prev) => {
+        const next = { ...prev };
+        if (current === undefined) delete next[productId];
+        else next[productId] = current;
+        return next;
+      });
+    }
+  }, [priceOverrides]);
+
   return (
-    <OrderContext.Provider value={{ orders, availability, visibility, addOrder, updateStatus, updatePayment, toggleAvailable, toggleVisible }}>
+    <OrderContext.Provider value={{ orders, availability, visibility, priceOverrides, addOrder, updateStatus, updatePayment, toggleAvailable, toggleVisible, updatePrice }}>
       {children}
     </OrderContext.Provider>
   );

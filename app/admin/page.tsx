@@ -7,15 +7,44 @@ import { OrderTable } from '@/components/admin/OrderTable';
 import { Clock } from '@/components/shared/Clock';
 import { PINGate } from '@/components/shared/PINGate';
 import { useOrderStore } from '@/store/orderStore';
-import { products as allProducts, withAvailability } from '@/data/primeFlavorMenu';
-import { formatPrice } from '@/utils/pricing';
+import { products as allProducts, withAvailability, withPriceOverride } from '@/data/primeFlavorMenu';
 
 type AdminTab = 'orders' | 'menu';
 
+function EditablePrice({ price, onSave }: { price: number; onSave: (price: number) => void }) {
+  const [value, setValue] = useState(price.toFixed(2));
+
+  function commit() {
+    const parsed = Number.parseFloat(value);
+    if (!Number.isFinite(parsed) || parsed < 0) {
+      setValue(price.toFixed(2));
+      return;
+    }
+    if (parsed !== price) onSave(parsed);
+    setValue(parsed.toFixed(2));
+  }
+
+  return (
+    <div className="flex items-center gap-1 font-bold text-orange">
+      <span>$</span>
+      <input
+        type="number"
+        step="0.01"
+        min="0"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
+        className="w-20 bg-transparent border-b border-transparent hover:border-border focus:border-orange outline-none text-orange font-bold"
+      />
+    </div>
+  );
+}
+
 function AdminDashboard() {
-  const { orders, availability, visibility, toggleAvailable, toggleVisible } = useOrderStore();
+  const { orders, availability, visibility, priceOverrides, toggleAvailable, toggleVisible, updatePrice } = useOrderStore();
   const [tab, setTab] = useState<AdminTab>('orders');
-  const menuProducts = withAvailability(allProducts, availability);
+  const menuProducts = withPriceOverride(withAvailability(allProducts, availability), priceOverrides);
 
   return (
     <div className="h-screen flex flex-col bg-base overflow-hidden">
@@ -92,7 +121,9 @@ function AdminDashboard() {
                   <tr key={p.id} className="border-b border-border hover:bg-card/50 transition-colors">
                     <td className="px-4 py-3 font-semibold text-cream">{p.name}</td>
                     <td className="px-4 py-3 text-cream-dim capitalize">{p.category}</td>
-                    <td className="px-4 py-3 font-bold text-orange">{formatPrice(p.price)}</td>
+                    <td className="px-4 py-3">
+                      <EditablePrice key={p.price} price={p.price} onSave={(price) => updatePrice(p.id, price)} />
+                    </td>
                     <td className="px-4 py-3">
                       <button
                         onClick={() => toggleAvailable(p.id)}

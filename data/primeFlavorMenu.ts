@@ -225,3 +225,7 @@ export function getProductsByCategory(categoryId: string): Product[] {
 export function withAvailability(list: Product[], overrides: Record<string, boolean>): Product[] {
   return list.map((p) => (p.id in overrides ? { ...p, available: overrides[p.id] } : p));
 }
+
+export function withPriceOverride(list: Product[], overrides: Record<string, number>): Product[] {
+  return list.map((p) => (p.id in overrides ? { ...p, price: overrides[p.id] } : p));
+}

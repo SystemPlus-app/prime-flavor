@@ -1,7 +1,7 @@
 'use client';
 
 import type { Product } from '@/types/product';
-import { products as allProducts, withAvailability } from '@/data/primeFlavorMenu';
+import { products as allProducts, withAvailability, withPriceOverride } from '@/data/primeFlavorMenu';
 import { useOrderStore } from '@/store/orderStore';
 import { formatPrice } from '@/utils/pricing';
 
@@ -47,8 +47,8 @@ const suggestionEmoji: Record<string, string> = {
 };
 
 export function UpsellSuggestions({ cart, onAdd }: Props) {
-  const { availability } = useOrderStore();
-  const products = withAvailability(allProducts, availability);
+  const { availability, priceOverrides } = useOrderStore();
+  const products = withPriceOverride(withAvailability(allProducts, availability), priceOverrides);
   const suggestions = getSuggestions(cart, products);
   if (suggestions.length === 0) return null;
 
