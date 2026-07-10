@@ -399,6 +399,7 @@ export default function KioskPage() {
   }
 
   function handleMobileTouchEnd(e: React.TouchEvent) {
+    const el = e.currentTarget as HTMLDivElement;
     const start = touchStartRef.current;
     touchStartRef.current = null;
     if (!start) return;
@@ -406,8 +407,18 @@ export default function KioskPage() {
     const dx = t.clientX - start.x;
     const dy = t.clientY - start.y;
     const SWIPE_THRESHOLD = 60;
+
     if (Math.abs(dx) > SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy) * 1.5) {
       goToAdjacentCategory(dx < 0 ? 1 : -1);
+      return;
+    }
+
+    // Short categories (little/no scroll room) never fire enough scroll events for
+    // handleMobileScroll to detect "reached the end" — catch it here instead, from
+    // the drag gesture itself, using the actual DOM scroll position at release time.
+    if (dy < -20 && Math.abs(dy) > Math.abs(dx)) {
+      const scrollable = el.scrollHeight - el.clientHeight;
+      if (scrollable <= 40) goToAdjacentCategory(1);
     }
   }
 
@@ -679,7 +690,13 @@ export default function KioskPage() {
           onStaffActivate={() => setShowStaffModal(true)}
         />
 
-        <div ref={desktopGridRef} className="flex-1 overflow-y-auto" onScroll={handleMobileScroll}>
+        <div
+          ref={desktopGridRef}
+          className="flex-1 overflow-y-auto"
+          onScroll={handleMobileScroll}
+          onTouchStart={handleMobileTouchStart}
+          onTouchEnd={handleMobileTouchEnd}
+        >
           <div className="sticky top-0 z-10 px-6 py-4 bg-base/95 backdrop-blur-sm border-b border-border">
             <h2 className="text-cream font-extrabold text-xl tracking-tight">
               {categoryLabel}
