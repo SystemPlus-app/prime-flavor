@@ -676,7 +676,7 @@ export default function KioskPage() {
           onStaffActivate={() => setShowStaffModal(true)}
         />
 
-        <div ref={desktopGridRef} className="flex-1 overflow-y-auto">
+        <div ref={desktopGridRef} className="flex-1 overflow-y-auto" onScroll={handleMobileScroll}>
           <div className="sticky top-0 z-10 px-6 py-4 bg-base/95 backdrop-blur-sm border-b border-border">
             <h2 className="text-cream font-extrabold text-xl tracking-tight">
               {categoryLabel}
