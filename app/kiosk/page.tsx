@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Product } from '@/types/product';
 import type { Order, OrderItem, PaymentStatus } from '@/types/order';
-import { categories, getProductsByCategory, withAvailability, withPriceOverride } from '@/data/primeFlavorMenu';
+import { categories, getProductsByCategory, withAvailability, withPriceOverride, withImageOverride } from '@/data/primeFlavorMenu';
 import { getCustomization } from '@/data/customizations';
 import { useOrderStore } from '@/store/orderStore';
 import { buildFallbackOrder } from '@/lib/orderFallback';
@@ -363,7 +363,7 @@ function MobileCartDrawer({ cart, show, customerName, onNameChange, onAdjust, on
 // ── Main kiosk page ───────────────────────────────────────────────────────────
 
 export default function KioskPage() {
-  const { addOrder, availability, visibility, priceOverrides } = useOrderStore();
+  const { addOrder, availability, visibility, priceOverrides, imageOverrides, customProducts } = useOrderStore();
 
   const [step, setStep] = useState<KioskStep>('browsing');
   const [category, setCategory] = useState('featured');
@@ -382,8 +382,13 @@ export default function KioskPage() {
   const desktopGridRef = useRef<HTMLDivElement>(null);
   const mobileGridRef = useRef<HTMLDivElement>(null);
 
-  const products = withPriceOverride(withAvailability(getProductsByCategory(category), availability), priceOverrides)
-    .filter((p) => visibility[p.id] !== false);
+  const customForCategory = category === 'featured'
+    ? customProducts.filter((p) => p.popular)
+    : customProducts.filter((p) => p.category === category);
+  const products = withImageOverride(
+    withPriceOverride(withAvailability([...getProductsByCategory(category), ...customForCategory], availability), priceOverrides),
+    imageOverrides,
+  ).filter((p) => visibility[p.id] !== false);
 
   useEffect(() => {
     desktopGridRef.current?.scrollTo({ top: 0, behavior: 'smooth' });

@@ -4,15 +4,15 @@ import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ productId: string }> }) {
   const { productId } = await params;
 
-  let body: { available?: boolean; visible?: boolean; price?: number };
+  let body: { available?: boolean; visible?: boolean; price?: number; imageUrl?: string };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  if (body.available === undefined && body.visible === undefined && body.price === undefined) {
-    return NextResponse.json({ error: 'available, visible, or price must be provided' }, { status: 400 });
+  if (body.available === undefined && body.visible === undefined && body.price === undefined && body.imageUrl === undefined) {
+    return NextResponse.json({ error: 'available, visible, price, or imageUrl must be provided' }, { status: 400 });
   }
   if (body.available !== undefined && typeof body.available !== 'boolean') {
     return NextResponse.json({ error: 'available must be a boolean' }, { status: 400 });
@@ -31,6 +31,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ pr
       ...(body.available !== undefined && { available: body.available }),
       ...(body.visible !== undefined && { visible: body.visible }),
       ...(body.price !== undefined && { price: body.price }),
+      ...(body.imageUrl !== undefined && { image_url: body.imageUrl || null }),
       updated_at: new Date().toISOString(),
     });
 
@@ -39,5 +40,5 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ pr
     return NextResponse.json({ error: 'Failed to update availability' }, { status: 500 });
   }
 
-  return NextResponse.json({ productId, available: body.available, visible: body.visible, price: body.price });
+  return NextResponse.json({ productId, available: body.available, visible: body.visible, price: body.price, imageUrl: body.imageUrl });
 }

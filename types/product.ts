@@ -6,6 +6,8 @@ export interface Product {
   available: boolean;
   description?: string;
   popular?: boolean;
+  image?: string;
+  custom?: boolean;
 }
 
 export interface Category {

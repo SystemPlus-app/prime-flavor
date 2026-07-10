@@ -102,7 +102,7 @@ const categoryBg: Record<string, string> = {
 export function KioskProductCard({ product, onAdd, quantity = 0, featured = false }: Props) {
   const [justAdded, setJustAdded] = useState(false);
 
-  const photo = productPhoto[product.id] ?? null;
+  const photo = product.image ?? productPhoto[product.id] ?? null;
   const emoji = productEmoji[product.id] ?? '🍴';
   const bg = productBg[product.id] ?? categoryBg[product.category] ?? categoryBg.plates;
   const inCart = quantity > 0;

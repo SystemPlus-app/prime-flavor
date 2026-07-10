@@ -7,7 +7,17 @@ import { OrderTable } from '@/components/admin/OrderTable';
 import { Clock } from '@/components/shared/Clock';
 import { PINGate } from '@/components/shared/PINGate';
 import { useOrderStore } from '@/store/orderStore';
-import { products as allProducts, withAvailability, withPriceOverride } from '@/data/primeFlavorMenu';
+import { categories, products as allProducts, withAvailability, withPriceOverride, withImageOverride } from '@/data/primeFlavorMenu';
+import type { Product } from '@/types/product';
+
+async function uploadImage(file: File): Promise<string> {
+  const formData = new FormData();
+  formData.append('file', file);
+  const res = await fetch('/api/upload-image', { method: 'POST', body: formData });
+  if (!res.ok) throw new Error('Failed to upload image');
+  const { url } = (await res.json()) as { url: string };
+  return url;
+}
 
 type AdminTab = 'orders' | 'menu';
 
@@ -41,10 +51,178 @@ function EditablePrice({ price, onSave }: { price: number; onSave: (price: numbe
   );
 }
 
+function PhotoCell({ image, onChange, onRemove }: { image?: string; onChange: (url: string) => void; onRemove: () => void }) {
+  const [uploading, setUploading] = useState(false);
+
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setUploading(true);
+    try {
+      const url = await uploadImage(file);
+      onChange(url);
+    } catch {
+      alert('Failed to upload image. Try a smaller file.');
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <div className="w-10 h-10 rounded-lg overflow-hidden bg-base border border-border flex items-center justify-center shrink-0">
+        {image ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={image} alt="" className="w-full h-full object-cover" />
+        ) : (
+          <span className="text-lg opacity-40">🍽️</span>
+        )}
+      </div>
+      <label className="text-[11px] font-bold uppercase tracking-wide text-muted hover:text-cream cursor-pointer">
+        {uploading ? 'Uploading…' : image ? 'Change' : 'Add'}
+        <input type="file" accept="image/*" className="hidden" onChange={handleFile} disabled={uploading} />
+      </label>
+      {image && (
+        <button onClick={onRemove} className="text-[11px] font-bold uppercase tracking-wide text-muted hover:text-red-400">
+          Remove
+        </button>
+      )}
+    </div>
+  );
+}
+
+function AddDishModal({ onClose, onCreate }: { onClose: () => void; onCreate: (input: { name: string; category: string; price: number; description?: string; imageUrl?: string; popular: boolean }) => Promise<void> }) {
+  const realCategories = categories.filter((c) => c.id !== 'featured');
+  const [name, setName] = useState('');
+  const [category, setCategory] = useState(realCategories[0]?.id ?? '');
+  const [price, setPrice] = useState('');
+  const [description, setDescription] = useState('');
+  const [popular, setPopular] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0] ?? null;
+    setFile(f);
+    setPreview(f ? URL.createObjectURL(f) : null);
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const parsedPrice = Number.parseFloat(price);
+    if (!name.trim()) { setError('Name is required'); return; }
+    if (!Number.isFinite(parsedPrice) || parsedPrice < 0) { setError('Enter a valid price'); return; }
+
+    setSaving(true);
+    setError('');
+    try {
+      let imageUrl: string | undefined;
+      if (file) imageUrl = await uploadImage(file);
+      await onCreate({ name: name.trim(), category, price: parsedPrice, description: description.trim() || undefined, imageUrl, popular });
+      onClose();
+    } catch {
+      setError('Failed to save dish. Try again.');
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+      <form onSubmit={handleSubmit} className="bg-surface border border-border rounded-2xl w-full max-w-md p-6 flex flex-col gap-4">
+        <h3 className="text-cream font-extrabold text-lg">Add New Dish</h3>
+
+        <div className="flex items-center gap-3">
+          <div className="w-16 h-16 rounded-lg overflow-hidden bg-base border border-border flex items-center justify-center shrink-0">
+            {preview ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={preview} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-2xl opacity-40">🍽️</span>
+            )}
+          </div>
+          <label className="text-sm font-semibold text-orange cursor-pointer">
+            Choose photo
+            <input type="file" accept="image/*" className="hidden" onChange={handleFile} />
+          </label>
+        </div>
+
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Dish name"
+          className="bg-base border border-border rounded-lg px-3 py-2 text-sm text-cream outline-none focus:border-orange"
+        />
+
+        <select
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          className="bg-base border border-border rounded-lg px-3 py-2 text-sm text-cream outline-none focus:border-orange"
+        >
+          {realCategories.map((c) => (
+            <option key={c.id} value={c.id}>{c.name}</option>
+          ))}
+        </select>
+
+        <input
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+          type="number"
+          step="0.01"
+          min="0"
+          placeholder="Price"
+          className="bg-base border border-border rounded-lg px-3 py-2 text-sm text-cream outline-none focus:border-orange"
+        />
+
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Description (optional)"
+          rows={2}
+          className="bg-base border border-border rounded-lg px-3 py-2 text-sm text-cream outline-none focus:border-orange resize-none"
+        />
+
+        <label className="flex items-center gap-2 text-sm text-cream-dim">
+          <input type="checkbox" checked={popular} onChange={(e) => setPopular(e.target.checked)} />
+          Show in Featured tab
+        </label>
+
+        {error && <p className="text-red-400 text-xs">{error}</p>}
+
+        <div className="flex gap-2 mt-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 py-2.5 rounded-lg border border-border text-muted hover:text-cream text-sm font-bold uppercase tracking-wide"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={saving}
+            className="flex-1 py-2.5 rounded-lg bg-orange text-white text-sm font-bold uppercase tracking-wide disabled:opacity-50"
+          >
+            {saving ? 'Saving…' : 'Add Dish'}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 function AdminDashboard() {
-  const { orders, availability, visibility, priceOverrides, toggleAvailable, toggleVisible, updatePrice } = useOrderStore();
+  const {
+    orders, availability, visibility, priceOverrides, imageOverrides, customProducts,
+    toggleAvailable, toggleVisible, updatePrice, updateImage, addCustomProduct, updateCustomProduct, deleteCustomProduct,
+  } = useOrderStore();
   const [tab, setTab] = useState<AdminTab>('orders');
-  const menuProducts = withPriceOverride(withAvailability(allProducts, availability), priceOverrides);
+  const [showAddDish, setShowAddDish] = useState(false);
+  const menuProducts: Product[] = withImageOverride(
+    withPriceOverride(withAvailability([...allProducts, ...customProducts], availability), priceOverrides),
+    imageOverrides,
+  );
 
   return (
     <div className="h-screen flex flex-col bg-base overflow-hidden">
@@ -102,11 +280,19 @@ function AdminDashboard() {
 
       {tab === 'menu' && (
         <div className="flex-1 overflow-y-auto px-4 pb-4">
+          <div className="flex justify-end py-3">
+            <button
+              onClick={() => setShowAddDish(true)}
+              className="px-4 py-2 rounded-lg bg-orange text-white text-sm font-bold uppercase tracking-wide"
+            >
+              + Add New Dish
+            </button>
+          </div>
           <div className="rounded-xl border border-border overflow-hidden">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border bg-card">
-                  {['Item', 'Category', 'Price', 'Status', 'Kiosk Menu'].map((h) => (
+                  {['Photo', 'Item', 'Category', 'Price', 'Status', 'Kiosk Menu', ''].map((h) => (
                     <th
                       key={h}
                       className="text-left px-4 py-3 text-muted text-[11px] font-bold uppercase tracking-wider"
@@ -119,6 +305,13 @@ function AdminDashboard() {
               <tbody>
                 {menuProducts.map((p) => (
                   <tr key={p.id} className="border-b border-border hover:bg-card/50 transition-colors">
+                    <td className="px-4 py-3">
+                      <PhotoCell
+                        image={p.image}
+                        onChange={(url) => (p.custom ? updateCustomProduct(p.id, { imageUrl: url }) : updateImage(p.id, url))}
+                        onRemove={() => (p.custom ? updateCustomProduct(p.id, { imageUrl: '' }) : updateImage(p.id, ''))}
+                      />
+                    </td>
                     <td className="px-4 py-3 font-semibold text-cream">{p.name}</td>
                     <td className="px-4 py-3 text-cream-dim capitalize">{p.category}</td>
                     <td className="px-4 py-3">
@@ -149,12 +342,29 @@ function AdminDashboard() {
                         {visibility[p.id] !== false ? 'Shown' : 'Hidden'}
                       </button>
                     </td>
+                    <td className="px-4 py-3">
+                      {p.custom && (
+                        <button
+                          onClick={() => { if (confirm(`Remove "${p.name}" from the menu permanently?`)) deleteCustomProduct(p.id); }}
+                          className="text-[11px] font-bold uppercase tracking-wide text-muted hover:text-red-400"
+                        >
+                          Delete
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         </div>
+      )}
+
+      {showAddDish && (
+        <AddDishModal
+          onClose={() => setShowAddDish(false)}
+          onCreate={async (input) => { await addCustomProduct(input); }}
+        />
       )}
     </div>
   );
