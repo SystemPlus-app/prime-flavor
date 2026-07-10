@@ -19,7 +19,7 @@ export const products: Product[] = [
     price: 13,
     available: true,
     popular: true,
-    description: 'Premium picanha grilled over open flame',
+    description: 'Premium picanha grilled over open flame. Served with vinagrete & farofa.',
   },
   {
     id: 'bbq-sausage-skewer',
@@ -27,7 +27,7 @@ export const products: Product[] = [
     category: 'skewers',
     price: 7,
     available: true,
-    description: 'House-seasoned linguiça on skewer',
+    description: 'House-seasoned linguiça on skewer. Served with vinagrete & farofa.',
   },
   {
     id: 'bbq-chicken-skewer',
@@ -35,7 +35,7 @@ export const products: Product[] = [
     category: 'skewers',
     price: 7,
     available: true,
-    description: 'Tender marinated chicken, flame grilled',
+    description: 'Tender marinated chicken, flame grilled. Served with vinagrete & farofa.',
   },
   {
     id: 'bbq-chicken-bacon-skewer',
@@ -43,7 +43,7 @@ export const products: Product[] = [
     category: 'skewers',
     price: 8,
     available: true,
-    description: 'Juicy chicken wrapped in crispy bacon',
+    description: 'Juicy chicken wrapped in crispy bacon. Served with vinagrete & farofa.',
   },
   {
     id: 'queijo-coalho-skewer',
@@ -51,7 +51,15 @@ export const products: Product[] = [
     category: 'skewers',
     price: 7,
     available: true,
-    description: 'Grilled Brazilian cheese, lightly salted',
+    description: 'Grilled Brazilian cheese, lightly salted. Served with vinagrete & farofa.',
+  },
+  {
+    id: 'prime-mixed-skewers',
+    name: 'Prime Mixed Skewers',
+    category: 'skewers',
+    price: 15,
+    available: true,
+    description: 'Picanha, sausage & chicken skewers — the works. Served with vinagrete & farofa.',
   },
 
   // ── Sandwiches ────────────────────────────────────────────────────────────
@@ -62,7 +70,7 @@ export const products: Product[] = [
     price: 25,
     available: true,
     popular: true,
-    description: 'Sliced picanha in artisan bread with signature sauce',
+    description: 'Sliced picanha with Swiss cheese, garlic sauce, vinagrete & potato chips. Choose ciabatta or French roll.',
   },
   {
     id: 'picanha-cheese-bread',
@@ -70,7 +78,7 @@ export const products: Product[] = [
     category: 'sandwiches',
     price: 17,
     available: true,
-    description: 'Picanha served in warm pão de queijo',
+    description: 'Picanha served in warm pão de queijo with Swiss cheese, garlic sauce, vinagrete & potato chips.',
   },
   {
     id: 'chicken-bacon-sandwich',
@@ -78,7 +86,7 @@ export const products: Product[] = [
     category: 'sandwiches',
     price: 16,
     available: true,
-    description: 'Grilled chicken & bacon in toasted brioche',
+    description: 'Grilled chicken & bacon with Swiss cheese, garlic sauce, vinagrete & potato chips. Choose ciabatta or French roll.',
   },
   {
     id: 'sausage-sandwich',
@@ -86,7 +94,7 @@ export const products: Product[] = [
     category: 'sandwiches',
     price: 15,
     available: true,
-    description: 'Linguiça with peppers & onions',
+    description: 'Linguiça with Swiss cheese, garlic sauce, vinagrete & potato chips. Choose ciabatta or French roll.',
   },
   {
     id: 'sausage-cheese-bread-sandwich',
@@ -94,7 +102,7 @@ export const products: Product[] = [
     category: 'sandwiches',
     price: 16,
     available: true,
-    description: 'Linguiça in warm cheese bread',
+    description: 'Linguiça in warm cheese bread with Swiss cheese, garlic sauce, vinagrete & potato chips.',
   },
   {
     id: 'special-bbq-sandwich',
@@ -103,7 +111,7 @@ export const products: Product[] = [
     price: 22,
     available: true,
     popular: true,
-    description: 'Mixed BBQ meats, roasted peppers & aioli',
+    description: 'Picanha, sausage, bacon, Swiss cheese & dried tomato garlic sauce with potato chips. Choose ciabatta or French roll.',
   },
 
   // ── Plates ────────────────────────────────────────────────────────────────
@@ -114,7 +122,7 @@ export const products: Product[] = [
     price: 23,
     available: true,
     popular: true,
-    description: 'Picanha with rice, beans & chimichurri',
+    description: 'Picanha with rice, vinagrete & farofa. Choose black beans, potato chips, or roasted potato.',
   },
   {
     id: 'bbq-chicken-plate',
@@ -122,7 +130,7 @@ export const products: Product[] = [
     category: 'plates',
     price: 18,
     available: true,
-    description: 'Grilled chicken with rice & beans',
+    description: 'Grilled chicken with rice, vinagrete & farofa. Choose black beans, potato chips, or roasted potato.',
   },
   {
     id: 'bbq-chicken-bacon-plate',
@@ -130,7 +138,7 @@ export const products: Product[] = [
     category: 'plates',
     price: 19,
     available: true,
-    description: 'Chicken & bacon plate with rice & beans',
+    description: 'Chicken & bacon with rice, vinagrete & farofa. Choose black beans, potato chips, or roasted potato.',
   },
   {
     id: 'bbq-sausage-plate',
@@ -138,7 +146,7 @@ export const products: Product[] = [
     category: 'plates',
     price: 18,
     available: true,
-    description: 'Linguiça plate with rice & beans',
+    description: 'Linguiça with rice, vinagrete & farofa. Choose black beans, potato chips, or roasted potato.',
   },
   {
     id: 'prime-bbq-plate',
@@ -147,7 +155,7 @@ export const products: Product[] = [
     price: 28,
     available: true,
     popular: true,
-    description: 'Picanha, chicken & sausage — the works',
+    description: 'Picanha, chicken & sausage with rice, vinagrete & farofa. Choose black beans, potato chips, or roasted potato.',
   },
 
   // ── Sides ─────────────────────────────────────────────────────────────────
@@ -155,7 +163,7 @@ export const products: Product[] = [
     id: 'cheese-bread-box',
     name: 'Cheese Bread Box',
     category: 'sides',
-    price: 8,
+    price: 7,
     available: true,
     popular: true,
     description: '6 warm pão de queijo, fresh from the oven',
@@ -164,7 +172,7 @@ export const products: Product[] = [
     id: 'garlic-bread',
     name: 'Garlic Bread',
     category: 'sides',
-    price: 8,
+    price: 7,
     available: true,
     description: 'Toasted with herb garlic butter',
   },
@@ -172,9 +180,33 @@ export const products: Product[] = [
     id: 'potato-chips',
     name: 'Potato Chips',
     category: 'sides',
-    price: 5,
+    price: 3,
     available: true,
     description: 'Crispy house-seasoned chips',
+  },
+  {
+    id: 'rice-side',
+    name: 'Rice',
+    category: 'sides',
+    price: 4,
+    available: true,
+    description: 'Steamed white rice',
+  },
+  {
+    id: 'beans-side',
+    name: 'Beans',
+    category: 'sides',
+    price: 4,
+    available: true,
+    description: 'Brazilian-style black beans',
+  },
+  {
+    id: 'fried-plantain',
+    name: 'Fried Plantain',
+    category: 'sides',
+    price: 5,
+    available: true,
+    description: 'Sweet fried plantain (banana)',
   },
 
   // ── Salads ────────────────────────────────────────────────────────────────

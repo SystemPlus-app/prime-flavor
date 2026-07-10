@@ -18,7 +18,7 @@ const productEmoji: Record<string, string> = {
   'picanha-sandwich': '🥩', 'picanha-cheese-bread': '🧀', 'chicken-bacon-sandwich': '🥓',
   'sausage-sandwich': '🌭', 'sausage-cheese-bread-sandwich': '🌭', 'special-bbq-sandwich': '🌟',
   'bbq-picanha-skewer': '🥩', 'bbq-chicken-skewer': '🍗', 'bbq-chicken-bacon-skewer': '🥓',
-  'bbq-sausage-skewer': '🌭',
+  'bbq-sausage-skewer': '🌭', 'queijo-coalho-skewer': '🧀', 'prime-mixed-skewers': '🍢',
 };
 
 export function CustomizationModal({ product, groups, onAdd, onClose }: Props) {

@@ -36,15 +36,26 @@ const heatLevel: CustomizationGroup = {
   ],
 };
 
+const plateSideChoice: CustomizationGroup = {
+  id: 'plate-side-choice',
+  label: 'Choose Side',
+  multi: false,
+  required: true,
+  options: [
+    { id: 'black-beans',   label: 'Black Beans',   price: 0 },
+    { id: 'potato-chips',  label: 'Potato Chips',  price: 0 },
+    { id: 'roasted-potato',label: 'Roasted Potato', price: 0 },
+  ],
+};
+
 const plateExtras: CustomizationGroup = {
   id: 'plate-extras',
   label: 'Add Extras',
   multi: true,
   options: [
-    { id: 'extra-rice',        label: 'Extra Rice',        price: 1 },
-    { id: 'extra-beans',       label: 'Extra Beans',       price: 1 },
-    { id: 'extra-farofa',      label: 'Extra Farofa',      price: 1 },
-    { id: 'extra-chimichurri', label: 'Extra Chimichurri', price: 0.5 },
+    { id: 'extra-rice',   label: 'Extra Rice',   price: 1 },
+    { id: 'extra-beans',  label: 'Extra Beans',  price: 1 },
+    { id: 'extra-farofa', label: 'Extra Farofa', price: 1 },
   ],
 };
 
@@ -53,9 +64,20 @@ const plateMods: CustomizationGroup = {
   label: 'Remove',
   multi: true,
   options: [
-    { id: 'no-rice',    label: 'No Rice',    price: 0 },
-    { id: 'no-beans',   label: 'No Beans',   price: 0 },
-    { id: 'no-farofa',  label: 'No Farofa',  price: 0 },
+    { id: 'no-rice',     label: 'No Rice',     price: 0 },
+    { id: 'no-vinagrete', label: 'No Vinagrete', price: 0 },
+    { id: 'no-farofa',   label: 'No Farofa',   price: 0 },
+  ],
+};
+
+const breadChoice: CustomizationGroup = {
+  id: 'bread-choice',
+  label: 'Choose Bread',
+  multi: false,
+  required: true,
+  options: [
+    { id: 'ciabatta',    label: 'Ciabatta Bread', price: 0 },
+    { id: 'french-roll', label: 'French Roll',    price: 0 },
   ],
 };
 
@@ -76,9 +98,10 @@ const sandwichMods: CustomizationGroup = {
   label: 'Remove',
   multi: true,
   options: [
-    { id: 'no-onion',   label: 'No Onion',   price: 0 },
-    { id: 'no-sauce',   label: 'No Sauce',   price: 0 },
-    { id: 'no-lettuce', label: 'No Lettuce', price: 0 },
+    { id: 'no-swiss-cheese', label: 'No Swiss Cheese', price: 0 },
+    { id: 'no-garlic-sauce', label: 'No Garlic Sauce', price: 0 },
+    { id: 'no-vinagrete',    label: 'No Vinagrete',    price: 0 },
+    { id: 'no-potato-chips', label: 'No Potato Chips', price: 0 },
   ],
 };
 
@@ -93,24 +116,36 @@ const skewerAddons: CustomizationGroup = {
   ],
 };
 
+const skewerMods: CustomizationGroup = {
+  id: 'skewer-mods',
+  label: 'Remove',
+  multi: true,
+  options: [
+    { id: 'no-vinagrete', label: 'No Vinagrete', price: 0 },
+    { id: 'no-farofa',    label: 'No Farofa',    price: 0 },
+  ],
+};
+
 export const customizations: Record<string, CustomizationGroup[]> = {
-  'bbq-picanha-plate':      [meatDoneness, plateExtras, plateMods],
-  'bbq-chicken-plate':      [heatLevel, plateExtras, plateMods],
-  'bbq-chicken-bacon-plate':[heatLevel, plateExtras, plateMods],
-  'bbq-sausage-plate':      [plateExtras, plateMods],
-  'prime-bbq-plate':        [meatDoneness, plateExtras, plateMods],
+  'bbq-picanha-plate':      [meatDoneness, plateSideChoice, plateExtras, plateMods],
+  'bbq-chicken-plate':      [heatLevel, plateSideChoice, plateExtras, plateMods],
+  'bbq-chicken-bacon-plate':[heatLevel, plateSideChoice, plateExtras, plateMods],
+  'bbq-sausage-plate':      [plateSideChoice, plateExtras, plateMods],
+  'prime-bbq-plate':        [meatDoneness, plateSideChoice, plateExtras, plateMods],
 
-  'picanha-sandwich':              [meatDoneness, sandwichAddons, sandwichMods],
+  'picanha-sandwich':              [breadChoice, meatDoneness, sandwichAddons, sandwichMods],
   'picanha-cheese-bread':          [meatDoneness, sandwichAddons, sandwichMods],
-  'chicken-bacon-sandwich':        [heatLevel, sandwichAddons, sandwichMods],
-  'sausage-sandwich':              [sandwichAddons, sandwichMods],
+  'chicken-bacon-sandwich':        [breadChoice, heatLevel, sandwichAddons, sandwichMods],
+  'sausage-sandwich':              [breadChoice, sandwichAddons, sandwichMods],
   'sausage-cheese-bread-sandwich': [sandwichAddons, sandwichMods],
-  'special-bbq-sandwich':          [meatDoneness, sandwichAddons, sandwichMods],
+  'special-bbq-sandwich':          [breadChoice, meatDoneness, sandwichAddons, sandwichMods],
 
-  'bbq-picanha-skewer':       [meatDoneness, skewerAddons],
-  'bbq-chicken-skewer':       [heatLevel, skewerAddons],
-  'bbq-chicken-bacon-skewer': [heatLevel, skewerAddons],
-  'bbq-sausage-skewer':       [skewerAddons],
+  'bbq-picanha-skewer':       [meatDoneness, skewerAddons, skewerMods],
+  'bbq-chicken-skewer':       [heatLevel, skewerAddons, skewerMods],
+  'bbq-chicken-bacon-skewer': [heatLevel, skewerAddons, skewerMods],
+  'bbq-sausage-skewer':       [skewerAddons, skewerMods],
+  'queijo-coalho-skewer':     [skewerAddons, skewerMods],
+  'prime-mixed-skewers':      [meatDoneness, skewerAddons, skewerMods],
 };
 
 export function getCustomization(productId: string): CustomizationGroup[] | null {
