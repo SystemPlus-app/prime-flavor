@@ -383,20 +383,11 @@ export default function KioskPage() {
 
   const desktopGridRef = useRef<HTMLDivElement>(null);
   const mobileGridRef = useRef<HTMLDivElement>(null);
-  const [isLandscapeTablet, setIsLandscapeTablet] = useState(false);
 
   // Swipe-to-change-category and scroll-to-end auto-advance (mobile/portrait grid only)
   const categoryIds = categories.map((c) => c.id);
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const autoAdvancingRef = useRef(false);
-
-  useEffect(() => {
-    const mq = window.matchMedia('(orientation: landscape) and (pointer: coarse) and (min-width: 1024px)');
-    const update = () => setIsLandscapeTablet(mq.matches);
-    update();
-    mq.addEventListener('change', update);
-    return () => mq.removeEventListener('change', update);
-  }, []);
 
   function goToAdjacentCategory(direction: 1 | -1) {
     const idx = categoryIds.indexOf(category);
@@ -421,11 +412,6 @@ export default function KioskPage() {
 
     if (Math.abs(dx) > SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy) * 1.5) {
       goToAdjacentCategory(dx < 0 ? 1 : -1);
-      return;
-    }
-
-    if (isLandscapeTablet && Math.abs(dy) > SWIPE_THRESHOLD && Math.abs(dy) > Math.abs(dx) * 1.2) {
-      goToAdjacentCategory(dy < 0 ? 1 : -1);
       return;
     }
 
@@ -675,7 +661,7 @@ export default function KioskPage() {
           onTouchEnd={handleMobileTouchEnd}
           onScroll={handleMobileScroll}
         >
-          <div className="p-3 grid grid-cols-2 gap-3">
+          <div className="p-3 pb-28 grid grid-cols-2 gap-3">
             {products.map((product) => (
               <KioskProductCard
                 key={product.id}
@@ -748,7 +734,7 @@ export default function KioskPage() {
             </h2>
           </div>
 
-          <div className="p-5">
+          <div className="p-5 pb-28">
             <div className="grid grid-cols-2 gap-4 xl:grid-cols-3">
               {products.map((product) => (
                 <KioskProductCard
