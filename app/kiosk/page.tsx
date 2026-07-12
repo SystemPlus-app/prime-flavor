@@ -35,8 +35,47 @@ interface PendingCustomization {
   groups: CustomizationGroup[];
 }
 
+interface ScrollGestureStart {
+  x: number;
+  y: number;
+  scrollTop: number;
+  scrollable: number;
+}
+
 const RESET_SECONDS = 30;
 const LONG_PRESS_MS = 5000;
+const CATEGORY_EDGE_ZONE = 56;
+const CATEGORY_SWIPE_THRESHOLD = 96;
+
+function normalizeProductKey(product: Product): string {
+  return `${product.category}:${product.name.trim().toLowerCase().replace(/\s+/g, ' ')}`;
+}
+
+function mergeMenuProducts(baseProducts: Product[], customProducts: Product[]): Product[] {
+  const seen = new Set(baseProducts.map(normalizeProductKey));
+  const uniqueCustomProducts = customProducts.filter((product) => {
+    const key = normalizeProductKey(product);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  return [...baseProducts, ...uniqueCustomProducts];
+}
+
+function isAtTop(scrollTop: number): boolean {
+  return scrollTop <= CATEGORY_EDGE_ZONE;
+}
+
+function isAtBottom(scrollTop: number, scrollable: number): boolean {
+  return scrollable <= CATEGORY_EDGE_ZONE || scrollTop >= scrollable - CATEGORY_EDGE_ZONE;
+}
+
+function shouldChangeCategoryFromGesture(start: ScrollGestureStart, dx: number, dy: number): 1 | -1 | null {
+  if (Math.abs(dy) < CATEGORY_SWIPE_THRESHOLD || Math.abs(dy) <= Math.abs(dx) * 1.2) return null;
+  if (dy < 0 && isAtBottom(start.scrollTop, start.scrollable)) return 1;
+  if (dy > 0 && isAtTop(start.scrollTop)) return -1;
+  return null;
+}
 
 // ── Order confirmation ────────────────────────────────────────────────────────
 
@@ -386,8 +425,7 @@ export default function KioskPage() {
 
   // Swipe-to-change-category and scroll-to-end auto-advance (mobile/portrait grid only)
   const categoryIds = categories.map((c) => c.id);
-  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
-  const autoAdvancingRef = useRef(false);
+  const touchStartRef = useRef<ScrollGestureStart | null>(null);
 
   function goToAdjacentCategory(direction: 1 | -1) {
     const idx = categoryIds.indexOf(category);
@@ -397,11 +435,16 @@ export default function KioskPage() {
 
   function handleMobileTouchStart(e: React.TouchEvent) {
     const t = e.touches[0];
-    touchStartRef.current = { x: t.clientX, y: t.clientY };
+    const el = e.currentTarget as HTMLDivElement;
+    touchStartRef.current = {
+      x: t.clientX,
+      y: t.clientY,
+      scrollTop: el.scrollTop,
+      scrollable: el.scrollHeight - el.clientHeight,
+    };
   }
 
   function handleMobileTouchEnd(e: React.TouchEvent) {
-    const el = e.currentTarget as HTMLDivElement;
     const start = touchStartRef.current;
     touchStartRef.current = null;
     if (!start) return;
@@ -415,39 +458,16 @@ export default function KioskPage() {
       return;
     }
 
-    // Short categories (little/no scroll room) never fire enough scroll events for
-    // handleMobileScroll to detect "reached the end" — catch it here instead, from
-    // the drag gesture itself, using the actual DOM scroll position at release time.
-    if (dy < -20 && Math.abs(dy) > Math.abs(dx)) {
-      const scrollable = el.scrollHeight - el.clientHeight;
-      if (scrollable <= 40) goToAdjacentCategory(1);
-    }
+    const direction = shouldChangeCategoryFromGesture(start, dx, dy);
+    if (direction) goToAdjacentCategory(direction);
   }
 
-  function handleMobileScroll(e: React.UIEvent<HTMLDivElement>) {
-    const el = e.currentTarget;
-    const scrollable = el.scrollHeight - el.clientHeight;
-
-    // Nothing to scroll, or scrolled back away from the bottom: always re-arm.
-    // (Position-based, not timer-based, so it can never get permanently stuck.)
-    if (scrollable < 80 || el.scrollTop < scrollable - 40) {
-      autoAdvancingRef.current = false;
-      return;
-    }
-    if (autoAdvancingRef.current) return;
-
-    const idx = categoryIds.indexOf(category);
-    if (idx < categoryIds.length - 1) {
-      autoAdvancingRef.current = true;
-      setCategory(categoryIds[idx + 1]);
-    }
-  }
-
+  const baseProducts = getProductsByCategory(category);
   const customForCategory = category === 'featured'
     ? customProducts.filter((p) => p.popular)
     : customProducts.filter((p) => p.category === category);
   const products = withImageOverride(
-    withPriceOverride(withAvailability([...getProductsByCategory(category), ...customForCategory], availability), priceOverrides),
+    withPriceOverride(withAvailability(mergeMenuProducts(baseProducts, customForCategory), availability), priceOverrides),
     imageOverrides,
   ).filter((p) => visibility[p.id] !== false);
 
@@ -659,7 +679,6 @@ export default function KioskPage() {
           className="flex-1 overflow-y-auto"
           onTouchStart={handleMobileTouchStart}
           onTouchEnd={handleMobileTouchEnd}
-          onScroll={handleMobileScroll}
         >
           <div className="p-3 pb-28 grid grid-cols-2 gap-3">
             {products.map((product) => (
@@ -719,7 +738,6 @@ export default function KioskPage() {
         <div
           ref={desktopGridRef}
           className="flex-1 overflow-y-auto"
-          onScroll={handleMobileScroll}
           onTouchStart={handleMobileTouchStart}
           onTouchEnd={handleMobileTouchEnd}
         >
