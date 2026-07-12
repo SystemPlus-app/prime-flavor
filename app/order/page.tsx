@@ -43,6 +43,8 @@ const IMG: Record<string, string> = {
   'garlic-bread':             '/menu/garlic-bread.png',
   'potato-chips':             '/menu/potato-chips.avif',
   'caesar-salad':             '/menu/caesar-salad.avif',
+  'picanha-salad':            '/menu/salada-de-picanha.png',
+  'chicken-bacon-salad':      '/menu/salada-de-frango-com-bacon.png',
   'guarana':                  '/menu/guarana.webp',
   'coke':                     '/menu/coke.webp',
 };

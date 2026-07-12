@@ -126,6 +126,30 @@ const skewerMods: CustomizationGroup = {
   ],
 };
 
+const saladAddons: CustomizationGroup = {
+  id: 'salad-addons',
+  label: 'Add-ons',
+  multi: true,
+  options: [
+    { id: 'add-rice', label: 'Rice', price: 4 },
+    { id: 'add-beans', label: 'Beans', price: 4 },
+    { id: 'add-fried-plantains', label: 'Fried Plantains', price: 5 },
+  ],
+};
+
+const saladMods: CustomizationGroup = {
+  id: 'salad-mods',
+  label: 'Remove',
+  multi: true,
+  options: [
+    { id: 'no-spicy', label: 'No Spicy', price: 0 },
+    { id: 'no-crispy-onions', label: 'No Crispy Onions', price: 0 },
+    { id: 'no-parmesan', label: 'No Parmesan', price: 0 },
+    { id: 'no-vinaigrette', label: 'No Vinaigrette', price: 0 },
+    { id: 'no-garlic-sauce', label: 'No Garlic Sauce', price: 0 },
+  ],
+};
+
 export const customizations: Record<string, CustomizationGroup[]> = {
   'bbq-picanha-plate':      [meatDoneness, plateSideChoice, plateExtras, plateMods],
   'bbq-chicken-plate':      [heatLevel, plateSideChoice, plateExtras, plateMods],
@@ -147,6 +171,12 @@ export const customizations: Record<string, CustomizationGroup[]> = {
   'bbq-sausage-skewer':       [skewerAddons, skewerMods],
   'queijo-coalho-skewer':     [skewerAddons, skewerMods],
   'prime-mixed-skewers':      [meatDoneness, skewerAddons, skewerMods],
+
+  'caesar-salad':          [saladAddons, saladMods],
+  'classic-chicken-salad': [saladAddons, saladMods],
+  'picanha-salad':         [meatDoneness, saladAddons, saladMods],
+  'tropical-salad':        [saladAddons, saladMods],
+  'chicken-bacon-salad':   [saladAddons, saladMods],
 };
 
 export function getCustomization(productId: string): CustomizationGroup[] | null {

@@ -44,7 +44,11 @@ export function CustomizationModal({ product, groups, onAdd, onClose }: Props) {
   function toggleMulti(groupId: string, optionId: string) {
     setSelectedMulti((prev) => {
       const cur = new Set(prev[groupId] ?? []);
-      cur.has(optionId) ? cur.delete(optionId) : cur.add(optionId);
+      if (cur.has(optionId)) {
+        cur.delete(optionId);
+      } else {
+        cur.add(optionId);
+      }
       return { ...prev, [groupId]: cur };
     });
   }

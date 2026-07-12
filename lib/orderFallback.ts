@@ -11,6 +11,7 @@ export function buildFallbackOrder(params: {
   subtotal: number;
   tax: number;
   total: number;
+  notes?: string;
 }): Order {
   const now = new Date().toISOString();
   return {
@@ -26,5 +27,6 @@ export function buildFallbackOrder(params: {
     source: params.source,
     createdAt: now,
     updatedAt: now,
+    notes: params.notes?.trim() || undefined,
   };
 }

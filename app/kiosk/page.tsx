@@ -11,6 +11,7 @@ import { formatPrice, calcTax, calcTotal } from '@/utils/pricing';
 import { formatOrderId } from '@/utils/orderStatus';
 import { KioskSidebar } from '@/components/kiosk/KioskSidebar';
 import { KioskProductCard } from '@/components/kiosk/KioskProductCard';
+import { PagerModal } from '@/components/kiosk/PagerModal';
 import { CustomizationModal } from '@/components/kiosk/CustomizationModal';
 import { PaymentModal } from '@/components/kiosk/PaymentModal';
 import { UpsellSuggestions } from '@/components/kiosk/UpsellSuggestions';
@@ -27,7 +28,7 @@ interface CartItem {
   unitPrice: number;
 }
 
-type KioskStep = 'browsing' | 'customizing' | 'payment' | 'confirmed';
+type KioskStep = 'browsing' | 'customizing' | 'pager' | 'payment' | 'confirmed';
 
 interface PendingCustomization {
   product: Product;
@@ -41,7 +42,7 @@ const LONG_PRESS_MS = 5000;
 
 function OrderConfirmation({ order, onReset }: { order: Order; onReset: () => void }) {
   const [secs, setSecs] = useState(RESET_SECONDS);
-  const waitMin = useRef(Math.floor(Math.random() * 9) + 10);
+  const waitMin = 10 + (order.orderNumber % 9);
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -70,7 +71,7 @@ function OrderConfirmation({ order, onReset }: { order: Order; onReset: () => vo
         <p className="text-cream font-extrabold text-5xl tracking-tighter">{formatOrderId(order.orderNumber)}</p>
         <div className="flex items-center justify-center gap-2 mt-1">
           <span className="text-cream-dim text-sm">Estimated wait:</span>
-          <span className="text-orange font-bold text-sm">~{waitMin.current} min</span>
+          <span className="text-orange font-bold text-sm">~{waitMin} min</span>
         </div>
       </div>
 
@@ -371,6 +372,7 @@ export default function KioskPage() {
   const [customerName, setCustomerName] = useState('');
   const [confirmedOrder, setConfirmedOrder] = useState<Order | null>(null);
   const [paymentReferenceId, setPaymentReferenceId] = useState('');
+  const [pagerNumber, setPagerNumber] = useState<number | null>(null);
   const [showStaffModal, setShowStaffModal] = useState(false);
   const [showMobileCart, setShowMobileCart] = useState(false);
   const [pendingCustomization, setPendingCustomization] = useState<PendingCustomization | null>(null);
@@ -381,11 +383,20 @@ export default function KioskPage() {
 
   const desktopGridRef = useRef<HTMLDivElement>(null);
   const mobileGridRef = useRef<HTMLDivElement>(null);
+  const [isLandscapeTablet, setIsLandscapeTablet] = useState(false);
 
   // Swipe-to-change-category and scroll-to-end auto-advance (mobile/portrait grid only)
   const categoryIds = categories.map((c) => c.id);
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const autoAdvancingRef = useRef(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(orientation: landscape) and (pointer: coarse) and (min-width: 1024px)');
+    const update = () => setIsLandscapeTablet(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
 
   function goToAdjacentCategory(direction: 1 | -1) {
     const idx = categoryIds.indexOf(category);
@@ -410,6 +421,11 @@ export default function KioskPage() {
 
     if (Math.abs(dx) > SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy) * 1.5) {
       goToAdjacentCategory(dx < 0 ? 1 : -1);
+      return;
+    }
+
+    if (isLandscapeTablet && Math.abs(dy) > SWIPE_THRESHOLD && Math.abs(dy) > Math.abs(dx) * 1.2) {
+      goToAdjacentCategory(dy < 0 ? 1 : -1);
       return;
     }
 
@@ -456,7 +472,9 @@ export default function KioskPage() {
 
   // Close mobile cart when a modal opens
   useEffect(() => {
-    if (step === 'payment' || step === 'customizing') setShowMobileCart(false);
+    if (step === 'payment' || step === 'customizing' || step === 'pager') {
+      queueMicrotask(() => setShowMobileCart(false));
+    }
   }, [step]);
 
   function startMobilePress() {
@@ -512,6 +530,12 @@ export default function KioskPage() {
 
   function handlePlaceOrder() {
     if (cart.length === 0) return;
+    setPagerNumber(null);
+    setStep('pager');
+  }
+
+  function handlePagerConfirm(number: number) {
+    setPagerNumber(number);
     setPaymentReferenceId(`kiosk-${Date.now()}`);
     setStep('payment');
   }
@@ -526,7 +550,8 @@ export default function KioskPage() {
       notes: c.notes || undefined,
     }));
     try {
-      const order = await addOrder(items, customerName.trim() || undefined, method);
+      const orderNotes = pagerNumber ? `Pager #${pagerNumber}` : undefined;
+      const order = await addOrder(items, customerName.trim() || undefined, method, 'KIOSK', orderNotes);
       setConfirmedOrder(order);
     } catch (err) {
       // Payment may already be charged (CARD) — never strand the customer without
@@ -541,6 +566,7 @@ export default function KioskPage() {
         subtotal,
         tax: calcTax(subtotal),
         total: calcTotal(subtotal),
+        notes: pagerNumber ? `Pager #${pagerNumber}` : undefined,
       }));
     }
     setCart([]);
@@ -552,6 +578,7 @@ export default function KioskPage() {
     setConfirmedOrder(null);
     setStep('browsing');
     setCategory('featured');
+    setPagerNumber(null);
   }, []);
 
   if (step === 'confirmed' && confirmedOrder) {
@@ -584,12 +611,25 @@ export default function KioskPage() {
         />
       )}
 
+      {step === 'pager' && (
+        <PagerModal
+          onConfirm={handlePagerConfirm}
+          onBack={() => {
+            setPagerNumber(null);
+            setStep('browsing');
+          }}
+        />
+      )}
+
       {step === 'payment' && (
         <PaymentModal
           total={total}
           referenceId={paymentReferenceId}
           onSelect={handlePaymentSelect}
-          onBack={() => setStep('browsing')}
+          onBack={() => {
+            setPagerNumber(null);
+            setStep('browsing');
+          }}
         />
       )}
 

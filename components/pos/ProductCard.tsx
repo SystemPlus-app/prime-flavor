@@ -13,6 +13,7 @@ const categoryColors: Record<string, string> = {
   skewers: '#4a3010',
   sandwiches: '#3a2a10',
   sides: '#1a3020',
+  salads: '#1a3020',
   drinks: '#1a2a40',
 };
 
@@ -36,13 +37,19 @@ export function ProductCard({ product, onAdd }: Props) {
         className="w-full h-[90px] flex items-center justify-center relative"
         style={{ backgroundColor: bgColor }}
       >
-        <span className="text-4xl select-none">
-          {product.category === 'plates' && '🍽️'}
-          {product.category === 'skewers' && '🍢'}
-          {product.category === 'sandwiches' && '🥪'}
-          {product.category === 'sides' && '🍞'}
-          {product.category === 'drinks' && '🥤'}
-        </span>
+        {product.image ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={product.image} alt={product.name} className="absolute inset-0 h-full w-full object-cover" />
+        ) : (
+          <span className="text-4xl select-none">
+            {product.category === 'plates' && '🍽️'}
+            {product.category === 'skewers' && '🍢'}
+            {product.category === 'sandwiches' && '🥪'}
+            {product.category === 'sides' && '🍞'}
+            {product.category === 'salads' && '🥗'}
+            {product.category === 'drinks' && '🥤'}
+          </span>
+        )}
         {!product.available && (
           <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
             <span className="text-[10px] font-bold text-red-400 tracking-widest uppercase">Sold Out</span>

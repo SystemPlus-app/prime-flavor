@@ -40,6 +40,29 @@ function statusLabel(status: OrderStatus, late: boolean): { text: string; color:
   return { text: status, color: 'text-muted' };
 }
 
+function getPagerInfo(notes?: string): { pager?: string; rest?: string } {
+  if (!notes) return {};
+  const parts = notes.split('|').map((part) => part.trim()).filter(Boolean);
+  let pager: string | undefined;
+  const rest: string[] = [];
+
+  for (const part of parts) {
+    const match = part.match(/^pager\s*#?\s*(1[0-6]|[1-9])$/i);
+    if (match && !pager) {
+      pager = match[1];
+      continue;
+    }
+    rest.push(part);
+  }
+
+  if (!pager) {
+    const fallback = notes.match(/pager\s*#?\s*(1[0-6]|[1-9])/i);
+    if (fallback) pager = fallback[1];
+  }
+
+  return { pager, rest: rest.length > 0 ? rest.join(' | ') : undefined };
+}
+
 function sourceBadge(source: OrderSource): { text: string; className: string } {
   if (source === 'DOORDASH') {
     return { text: 'DoorDash', className: 'bg-[#3a1010] border-[#ff4f4f]/50 text-[#ff7b7b]' };
@@ -71,6 +94,7 @@ export function KitchenOrderCard({ order }: Props) {
   const late = isLate(order.createdAt, 10);
   const label = statusLabel(order.status, late);
   const source = sourceBadge(order.source);
+  const { pager, rest } = getPagerInfo(order.notes);
 
   return (
     <div className={`flex flex-col rounded-xl border bg-card overflow-hidden transition-shadow duration-500 ${cardClasses(order.status, late)}`}>
@@ -89,6 +113,11 @@ export function KitchenOrderCard({ order }: Props) {
           <span className={`text-[9px] border font-extrabold uppercase tracking-widest px-2 py-0.5 rounded ${source.className}`}>
             {source.text}
           </span>
+          {pager && (
+            <span className="text-[10px] bg-[#0a3018] border border-[#3da855] text-[#7fe28f] font-extrabold uppercase tracking-widest px-2 py-1 rounded">
+              Pager {pager}
+            </span>
+          )}
           {order.paymentStatus === 'UNPAID' && (
             <span className="text-[9px] bg-[#4a120f] border border-[#ff6060]/40 text-[#ff8a8a] font-extrabold uppercase tracking-widest px-2 py-0.5 rounded">
               Needs payment
@@ -109,9 +138,9 @@ export function KitchenOrderCard({ order }: Props) {
 
       {/* Items */}
       <div className="flex-1 px-4 py-3 space-y-2.5 overflow-y-auto min-h-[80px]">
-        {order.notes && (
+        {rest && (
           <div className="rounded-lg border border-[#d4a530]/30 bg-[#3a2a08]/35 px-3 py-2 text-[#e8c66a] text-xs font-semibold">
-            {order.notes}
+            {rest}
           </div>
         )}
         {order.items.map((item) => (

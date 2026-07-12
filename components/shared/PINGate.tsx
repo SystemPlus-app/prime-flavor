@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { STAFF_PIN, SESSION_KEY } from '@/lib/staffPin';
 import Link from 'next/link';
 
@@ -10,16 +10,11 @@ interface Props {
 }
 
 export function PINGate({ children, routeLabel }: Props) {
-  const [checked, setChecked] = useState(false);
-  const [authorized, setAuthorized] = useState(false);
+  const [authorized, setAuthorized] = useState(() => (
+    typeof window !== 'undefined' && sessionStorage.getItem(SESSION_KEY) === '1'
+  ));
   const [pin, setPin] = useState('');
   const [shake, setShake] = useState(false);
-
-  useEffect(() => {
-    const ok = sessionStorage.getItem(SESSION_KEY) === '1';
-    setAuthorized(ok);
-    setChecked(true);
-  }, []);
 
   function pressDigit(d: string) {
     if (pin.length >= 4) return;
@@ -47,7 +42,6 @@ export function PINGate({ children, routeLabel }: Props) {
     setPin((p) => p.slice(0, -1));
   }
 
-  if (!checked) return null;
   if (authorized) return <>{children}</>;
 
   const digits = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫'];
