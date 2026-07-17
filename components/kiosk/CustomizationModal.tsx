@@ -42,11 +42,14 @@ export function CustomizationModal({ product, groups, onAdd, onClose }: Props) {
   const unitPrice = product.price + upcharge;
 
   function toggleMulti(groupId: string, optionId: string) {
+    const group = groups.find((g) => g.id === groupId);
+
     setSelectedMulti((prev) => {
       const cur = new Set(prev[groupId] ?? []);
       if (cur.has(optionId)) {
         cur.delete(optionId);
       } else {
+        if (group?.maxSelections && cur.size >= group.maxSelections) return prev;
         cur.add(optionId);
       }
       return { ...prev, [groupId]: cur };
@@ -114,6 +117,9 @@ export function CustomizationModal({ product, groups, onAdd, onClose }: Props) {
                     Required
                   </span>
                 )}
+                {group.multi && group.maxSelections && (
+                  <span className="text-[10px] text-muted">Max {group.maxSelections}</span>
+                )}
                 {!group.multi && !group.required && (
                   <span className="text-[10px] text-muted">Pick one</span>
                 )}
@@ -124,20 +130,28 @@ export function CustomizationModal({ product, groups, onAdd, onClose }: Props) {
                   const isSelected = group.multi
                     ? (selectedMulti[group.id]?.has(opt.id) ?? false)
                     : selectedSingle[group.id] === opt.id;
+                  const multiCount = selectedMulti[group.id]?.size ?? 0;
+                  const maxReached = group.multi && !!group.maxSelections && multiCount >= group.maxSelections;
+                  const isDisabled = maxReached && !isSelected;
 
                   return (
                     <button
                       key={opt.id}
                       onClick={() =>
-                        group.multi
+                        isDisabled
+                          ? undefined
+                          : group.multi
                           ? toggleMulti(group.id, opt.id)
                           : setSelectedSingle((p) => ({ ...p, [group.id]: opt.id }))
                       }
+                      disabled={isDisabled}
                       className={`
                         flex items-center gap-1.5 px-4 py-2.5 rounded-xl border font-semibold text-sm
                         transition-all duration-150 active:scale-95
                         ${isSelected
                           ? 'bg-orange/20 border-orange text-orange'
+                          : isDisabled
+                            ? 'bg-card border-border text-muted opacity-45 cursor-not-allowed'
                           : 'bg-card border-border text-cream-dim hover:border-orange/50 hover:text-cream'
                         }
                       `}

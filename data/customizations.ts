@@ -9,6 +9,7 @@ export interface CustomizationGroup {
   label: string;
   multi: boolean;
   required?: boolean;
+  maxSelections?: number;
   options: CustomizationOption[];
 }
 
@@ -67,6 +68,18 @@ const plateMods: CustomizationGroup = {
     { id: 'no-rice',     label: 'No Rice',     price: 0 },
     { id: 'no-vinagrete', label: 'No Vinagrete', price: 0 },
     { id: 'no-farofa',   label: 'No Farofa',   price: 0 },
+  ],
+};
+
+const sauceChoice: CustomizationGroup = {
+  id: 'sauce-choice',
+  label: 'Choose up to 2 sauces',
+  multi: true,
+  maxSelections: 2,
+  options: [
+    { id: 'barbecue', label: 'Barbecue', price: 0 },
+    { id: 'chimichurri', label: 'Chimichurri', price: 0 },
+    { id: 'garlic-sauce', label: 'Garlic Sauce', price: 0 },
   ],
 };
 
@@ -151,32 +164,39 @@ const saladMods: CustomizationGroup = {
 };
 
 export const customizations: Record<string, CustomizationGroup[]> = {
-  'bbq-picanha-plate':      [meatDoneness, plateSideChoice, plateExtras, plateMods],
-  'bbq-chicken-plate':      [heatLevel, plateSideChoice, plateExtras, plateMods],
-  'bbq-chicken-bacon-plate':[heatLevel, plateSideChoice, plateExtras, plateMods],
-  'bbq-sausage-plate':      [plateSideChoice, plateExtras, plateMods],
-  'prime-bbq-plate':        [meatDoneness, plateSideChoice, plateExtras, plateMods],
+  'bbq-picanha-plate':      [meatDoneness, plateSideChoice, sauceChoice, plateExtras, plateMods],
+  'bbq-chicken-plate':      [heatLevel, plateSideChoice, sauceChoice, plateExtras, plateMods],
+  'bbq-chicken-bacon-plate':[heatLevel, plateSideChoice, sauceChoice, plateExtras, plateMods],
+  'bbq-sausage-plate':      [plateSideChoice, sauceChoice, plateExtras, plateMods],
+  'prime-bbq-plate':        [meatDoneness, plateSideChoice, sauceChoice, plateExtras, plateMods],
 
-  'picanha-sandwich':              [breadChoice, meatDoneness, sandwichAddons, sandwichMods],
-  'picanha-cheese-bread':          [meatDoneness, sandwichAddons, sandwichMods],
-  'chicken-bacon-sandwich':        [breadChoice, heatLevel, sandwichAddons, sandwichMods],
-  'chicken-sandwich':               [breadChoice, heatLevel, sandwichAddons, sandwichMods],
-  'sausage-sandwich':               [breadChoice, sandwichAddons, sandwichMods],
-  'sausage-cheese-bread-sandwich': [sandwichAddons, sandwichMods],
-  'special-bbq-sandwich':          [breadChoice, meatDoneness, sandwichAddons, sandwichMods],
+  'picanha-sandwich':              [breadChoice, meatDoneness, sauceChoice, sandwichAddons, sandwichMods],
+  'picanha-cheese-bread':          [meatDoneness, sauceChoice, sandwichAddons, sandwichMods],
+  'chicken-bacon-sandwich':        [breadChoice, heatLevel, sauceChoice, sandwichAddons, sandwichMods],
+  'chicken-sandwich':               [breadChoice, heatLevel, sauceChoice, sandwichAddons, sandwichMods],
+  'sausage-sandwich':               [breadChoice, sauceChoice, sandwichAddons, sandwichMods],
+  'sausage-cheese-bread-sandwich': [sauceChoice, sandwichAddons, sandwichMods],
+  'special-bbq-sandwich':          [breadChoice, meatDoneness, sauceChoice, sandwichAddons, sandwichMods],
 
-  'bbq-picanha-skewer':       [meatDoneness, skewerAddons, skewerMods],
-  'bbq-chicken-skewer':       [heatLevel, skewerAddons, skewerMods],
-  'bbq-chicken-bacon-skewer': [heatLevel, skewerAddons, skewerMods],
-  'bbq-sausage-skewer':       [skewerAddons, skewerMods],
-  'queijo-coalho-skewer':     [skewerAddons, skewerMods],
-  'prime-mixed-skewers':      [meatDoneness, skewerAddons, skewerMods],
+  'bbq-picanha-skewer':       [meatDoneness, sauceChoice, skewerAddons, skewerMods],
+  'bbq-chicken-skewer':       [heatLevel, sauceChoice, skewerAddons, skewerMods],
+  'bbq-chicken-bacon-skewer': [heatLevel, sauceChoice, skewerAddons, skewerMods],
+  'bbq-sausage-skewer':       [sauceChoice, skewerAddons, skewerMods],
+  'queijo-coalho-skewer':     [sauceChoice, skewerAddons, skewerMods],
+  'prime-mixed-skewers':      [meatDoneness, sauceChoice, skewerAddons, skewerMods],
 
-  'caesar-salad':          [saladAddons, saladMods],
-  'classic-chicken-salad': [saladAddons, saladMods],
-  'picanha-salad':         [meatDoneness, saladAddons, saladMods],
-  'tropical-salad':        [saladAddons, saladMods],
-  'chicken-bacon-salad':   [saladAddons, saladMods],
+  'cheese-bread-box': [sauceChoice],
+  'garlic-bread':     [sauceChoice],
+  'potato-chips':     [sauceChoice],
+  'rice-side':        [sauceChoice],
+  'beans-side':       [sauceChoice],
+  'fried-plantain':   [sauceChoice],
+
+  'caesar-salad':          [sauceChoice, saladAddons, saladMods],
+  'classic-chicken-salad': [sauceChoice, saladAddons, saladMods],
+  'picanha-salad':         [meatDoneness, sauceChoice, saladAddons, saladMods],
+  'tropical-salad':        [sauceChoice, saladAddons, saladMods],
+  'chicken-bacon-salad':   [sauceChoice, saladAddons, saladMods],
 };
 
 export function getCustomization(productId: string): CustomizationGroup[] | null {

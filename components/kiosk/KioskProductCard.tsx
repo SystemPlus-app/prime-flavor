@@ -158,7 +158,7 @@ export function KioskProductCard({ product, onAdd, quantity = 0, featured = fals
           <img
             src={photo}
             alt={product.name}
-            className="absolute inset-0 w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
           <span
