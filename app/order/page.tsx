@@ -29,7 +29,7 @@ const IMG: Record<string, string> = {
   'bbq-chicken-bacon-skewer': '/menu/bbq-chicken-bacon.png',
   'queijo-coalho-skewer':     '/menu/queijo-coalho.png',
   'picanha-sandwich':         '/menu/picanha-sandwich.png',
-  'picanha-cheese-bread':     '/menu/cheese-bread-box.png',
+  'picanha-cheese-bread':     '/menu/picanha-cheese-bread.jpeg',
   'chicken-bacon-sandwich':   '/menu/bbq-chicken-bacon.png',
   'sausage-sandwich':         '/menu/bbq-sausage.png',
   'sausage-cheese-bread-sandwich': '/menu/cheese-bread-box.png',
