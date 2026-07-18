@@ -148,7 +148,12 @@ export function OrderTable({ orders }: Props) {
                     <td className="px-4 py-3 text-cream-dim text-xs">{formatTime(order.createdAt)}</td>
                     <td className="px-4 py-3 font-semibold text-cream">{order.customerName ?? 'Walk-in'}</td>
                     <td className="px-4 py-3 text-cream-dim max-w-[200px] truncate">{itemsSummary(order)}</td>
-                    <td className="px-4 py-3 font-bold text-cream">{formatPrice(order.total)}</td>
+                    <td className="px-4 py-3 font-bold text-cream">
+                      {formatPrice(order.total)}
+                      {order.paymentStatus === 'TICKET' && (
+                        <span className="ml-1.5 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-[#3da855]">🎟️ Ticket</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3">
                       <StatusBadge status={order.status} />
                     </td>

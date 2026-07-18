@@ -1,5 +1,5 @@
 export type OrderStatus = 'NEW' | 'PREPARING' | 'READY' | 'COMPLETED' | 'CANCELLED';
-export type PaymentStatus = 'UNPAID' | 'CASH' | 'CARD';
+export type PaymentStatus = 'UNPAID' | 'CASH' | 'CARD' | 'TICKET';
 export type OrderSource = 'KIOSK' | 'WEBSITE' | 'DOORDASH' | 'UBER_EATS' | 'GRUBHUB' | 'PHONE';
 
 export interface OrderItem {

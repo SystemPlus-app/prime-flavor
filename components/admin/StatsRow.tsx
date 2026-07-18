@@ -13,7 +13,7 @@ export function StatsRow({ orders }: Props) {
   const todayOrders = orders.filter((o) => new Date(o.createdAt).toDateString() === today);
 
   const revenue = todayOrders
-    .filter((o) => o.paymentStatus !== 'UNPAID')
+    .filter((o) => o.paymentStatus !== 'UNPAID' && o.paymentStatus !== 'TICKET')
     .reduce((s, o) => s + o.total, 0);
 
   const active = orders.filter((o) => ['NEW', 'PREPARING', 'READY'].includes(o.status)).length;

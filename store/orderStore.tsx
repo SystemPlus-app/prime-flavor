@@ -3,10 +3,12 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import type { Order, OrderItem, OrderStatus, OrderSource, PaymentStatus } from '@/types/order';
 import type { Product } from '@/types/product';
+import type { TicketBatch, RedeemedTicket } from '@/types/ticketBatch';
 import { products as menuProducts } from '@/data/primeFlavorMenu';
 import { getSupabase } from '@/lib/supabase';
 import { mapOrderRow } from '@/lib/orderMapper';
 import { mapCustomProductRow } from '@/lib/customProductMapper';
+import { mapTicketBatchRow, mapRedeemedTicketRow } from '@/lib/ticketBatchMapper';
 
 type Availability = Record<string, boolean>;
 type Visibility = Record<string, boolean>;
@@ -31,6 +33,22 @@ export interface CustomProductEdit {
   popular?: boolean;
 }
 
+export interface NewTicketBatch {
+  label: string;
+  ticketStart: number;
+  ticketEnd: number;
+  allowedProductIds: string[] | null;
+  active?: boolean;
+}
+
+export interface TicketBatchEdit {
+  label?: string;
+  ticketStart?: number;
+  ticketEnd?: number;
+  allowedProductIds?: string[] | null;
+  active?: boolean;
+}
+
 function upsertProduct(list: Product[], product: Product): Product[] {
   const idx = list.findIndex((p) => p.id === product.id);
   if (idx === -1) return [...list, product];
@@ -47,6 +65,22 @@ function upsertOrder(list: Order[], order: Order): Order[] {
   return next;
 }
 
+function upsertTicketBatch(list: TicketBatch[], batch: TicketBatch): TicketBatch[] {
+  const idx = list.findIndex((b) => b.id === batch.id);
+  if (idx === -1) return [...list, batch];
+  const next = [...list];
+  next[idx] = batch;
+  return next;
+}
+
+function upsertRedeemedTicket(list: RedeemedTicket[], ticket: RedeemedTicket): RedeemedTicket[] {
+  const idx = list.findIndex((t) => t.batchId === ticket.batchId && t.ticketNumber === ticket.ticketNumber);
+  if (idx === -1) return [...list, ticket];
+  const next = [...list];
+  next[idx] = ticket;
+  return next;
+}
+
 interface OrderStoreValue {
   orders: Order[];
   availability: Availability;
@@ -54,6 +88,8 @@ interface OrderStoreValue {
   priceOverrides: PriceOverrides;
   imageOverrides: ImageOverrides;
   customProducts: Product[];
+  ticketBatches: TicketBatch[];
+  redeemedTickets: RedeemedTicket[];
   addOrder: (items: OrderItem[], customerName?: string, paymentStatus?: PaymentStatus, source?: OrderSource, notes?: string) => Promise<Order>;
   updateStatus: (id: string, status: OrderStatus) => Promise<void>;
   updatePayment: (id: string, paymentStatus: PaymentStatus) => Promise<void>;
@@ -64,6 +100,9 @@ interface OrderStoreValue {
   addCustomProduct: (input: NewCustomProduct) => Promise<Product>;
   updateCustomProduct: (id: string, input: CustomProductEdit) => Promise<void>;
   deleteCustomProduct: (id: string) => Promise<void>;
+  addTicketBatch: (input: NewTicketBatch) => Promise<TicketBatch>;
+  updateTicketBatch: (id: string, input: TicketBatchEdit) => Promise<void>;
+  deleteTicketBatch: (id: string) => Promise<void>;
 }
 
 const OrderContext = createContext<OrderStoreValue | null>(null);
@@ -75,6 +114,8 @@ export function OrderStoreProvider({ children }: { children: React.ReactNode }) 
   const [priceOverrides, setPriceOverrides] = useState<PriceOverrides>({});
   const [imageOverrides, setImageOverrides] = useState<ImageOverrides>({});
   const [customProducts, setCustomProducts] = useState<Product[]>([]);
+  const [ticketBatches, setTicketBatches] = useState<TicketBatch[]>([]);
+  const [redeemedTickets, setRedeemedTickets] = useState<RedeemedTicket[]>([]);
 
   useEffect(() => {
     const supabase = getSupabase();
@@ -121,6 +162,23 @@ export function OrderStoreProvider({ children }: { children: React.ReactNode }) 
         setCustomProducts((data ?? []).map(mapCustomProductRow));
       });
 
+    supabase
+      .from('ticket_batches')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .then(({ data, error }) => {
+        if (error) { console.error('Failed to load ticket batches', error); return; }
+        setTicketBatches((data ?? []).map(mapTicketBatchRow));
+      });
+
+    supabase
+      .from('redeemed_tickets')
+      .select('*')
+      .then(({ data, error }) => {
+        if (error) { console.error('Failed to load redeemed tickets', error); return; }
+        setRedeemedTickets((data ?? []).map(mapRedeemedTicketRow));
+      });
+
     const channel = supabase
       .channel('prime-flavor-live')
       .on('postgres_changes', { event: '*', schema: 'prime_flavor', table: 'orders' }, (payload) => {
@@ -146,6 +204,18 @@ export function OrderStoreProvider({ children }: { children: React.ReactNode }) 
           return;
         }
         setCustomProducts((prev) => upsertProduct(prev, mapCustomProductRow(payload.new as Record<string, unknown>)));
+      })
+      .on('postgres_changes', { event: '*', schema: 'prime_flavor', table: 'ticket_batches' }, (payload) => {
+        if (payload.eventType === 'DELETE') {
+          const oldRow = payload.old as { id: string };
+          setTicketBatches((prev) => prev.filter((b) => b.id !== oldRow.id));
+          return;
+        }
+        setTicketBatches((prev) => upsertTicketBatch(prev, mapTicketBatchRow(payload.new as Record<string, unknown>)));
+      })
+      .on('postgres_changes', { event: '*', schema: 'prime_flavor', table: 'redeemed_tickets' }, (payload) => {
+        if (payload.eventType === 'DELETE') return;
+        setRedeemedTickets((prev) => upsertRedeemedTicket(prev, mapRedeemedTicketRow(payload.new as Record<string, unknown>)));
       })
       .subscribe();
 
@@ -292,11 +362,49 @@ export function OrderStoreProvider({ children }: { children: React.ReactNode }) 
     }
   }, [customProducts]);
 
+  const addTicketBatch = useCallback(async (input: NewTicketBatch): Promise<TicketBatch> => {
+    const res = await fetch('/api/ticket-batches', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    });
+    if (!res.ok) {
+      const { error } = await res.json().catch(() => ({ error: 'Failed to create ticket batch' }));
+      throw new Error(error || 'Failed to create ticket batch');
+    }
+    const { batch } = (await res.json()) as { batch: TicketBatch };
+    setTicketBatches((prev) => upsertTicketBatch(prev, batch));
+    return batch;
+  }, []);
+
+  const updateTicketBatch = useCallback(async (id: string, input: TicketBatchEdit) => {
+    const res = await fetch(`/api/ticket-batches/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    });
+    if (!res.ok) { console.error('Failed to update ticket batch'); return; }
+    const { batch } = (await res.json()) as { batch: TicketBatch };
+    setTicketBatches((prev) => upsertTicketBatch(prev, batch));
+  }, []);
+
+  const deleteTicketBatch = useCallback(async (id: string) => {
+    const prev = ticketBatches;
+    setTicketBatches((b) => b.filter((item) => item.id !== id));
+    const res = await fetch(`/api/ticket-batches/${id}`, { method: 'DELETE' });
+    if (!res.ok) {
+      console.error('Failed to delete ticket batch');
+      setTicketBatches(prev);
+    }
+  }, [ticketBatches]);
+
   return (
     <OrderContext.Provider value={{
       orders, availability, visibility, priceOverrides, imageOverrides, customProducts,
+      ticketBatches, redeemedTickets,
       addOrder, updateStatus, updatePayment, toggleAvailable, toggleVisible, updatePrice,
       updateImage, addCustomProduct, updateCustomProduct, deleteCustomProduct,
+      addTicketBatch, updateTicketBatch, deleteTicketBatch,
     }}>
       {children}
     </OrderContext.Provider>

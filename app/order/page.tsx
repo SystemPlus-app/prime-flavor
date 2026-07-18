@@ -8,7 +8,7 @@ import { useOrderStore } from '@/store/orderStore';
 import { buildFallbackOrder } from '@/lib/orderFallback';
 import { formatPrice, calcTax, calcTotal } from '@/utils/pricing';
 import { formatOrderId } from '@/utils/orderStatus';
-import { PaymentModal } from '@/components/kiosk/PaymentModal';
+import { PaymentModal, type PaymentSelectMeta } from '@/components/kiosk/PaymentModal';
 import type { Product } from '@/types/product';
 import type { Order, OrderItem, PaymentStatus } from '@/types/order';
 
@@ -183,7 +183,7 @@ export default function OrderPage() {
     setShowPayment(true);
   }, [hasItems]);
 
-  const handlePaymentSelect = useCallback(async (method: PaymentStatus) => {
+  const handlePaymentSelect = useCallback(async (method: PaymentStatus, meta?: PaymentSelectMeta) => {
     const items: OrderItem[] = cart.map((c) => ({
       id: crypto.randomUUID(),
       productId: c.product.id,
@@ -191,8 +191,9 @@ export default function OrderPage() {
       price: c.product.price,
       quantity: c.quantity,
     }));
+    const orderNotes = meta?.ticketNumbers?.length ? `Tickets: ${meta.ticketNumbers.join(', ')}` : undefined;
     try {
-      const order = await addOrder(items, customerName.trim() || 'Online Guest', method, 'WEBSITE');
+      const order = await addOrder(items, customerName.trim() || 'Online Guest', method, 'WEBSITE', orderNotes);
       setConfirmedOrder(order);
     } catch (err) {
       console.error('Failed to save order — showing local confirmation as fallback', err);
@@ -205,6 +206,7 @@ export default function OrderPage() {
         subtotal,
         tax: calcTax(subtotal),
         total: calcTotal(subtotal),
+        notes: orderNotes,
       }));
     }
     setCart([]);
@@ -227,6 +229,7 @@ export default function OrderPage() {
         <PaymentModal
           total={total}
           referenceId={paymentReferenceId}
+          items={cart.map((c) => ({ productId: c.product.id, quantity: c.quantity }))}
           onSelect={handlePaymentSelect}
           onBack={() => setShowPayment(false)}
         />

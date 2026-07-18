@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { StatsRow } from '@/components/admin/StatsRow';
 import { OrderTable } from '@/components/admin/OrderTable';
+import { TicketBatchesPanel } from '@/components/admin/TicketBatchesPanel';
 import { Clock } from '@/components/shared/Clock';
 import { PINGate } from '@/components/shared/PINGate';
 import { useOrderStore } from '@/store/orderStore';
@@ -19,7 +20,7 @@ async function uploadImage(file: File): Promise<string> {
   return url;
 }
 
-type AdminTab = 'orders' | 'menu';
+type AdminTab = 'orders' | 'menu' | 'tickets';
 
 function EditablePrice({ price, onSave }: { price: number; onSave: (price: number) => void }) {
   const [value, setValue] = useState(price.toFixed(2));
@@ -273,10 +274,20 @@ function AdminDashboard() {
         >
           Menu Management
         </button>
+        <button
+          onClick={() => setTab('tickets')}
+          className={`px-4 py-2 rounded-lg text-sm font-bold uppercase tracking-wide transition-colors ${
+            tab === 'tickets' ? 'bg-orange text-white' : 'text-muted hover:text-cream'
+          }`}
+        >
+          Event Tickets
+        </button>
       </div>
 
       {/* content */}
       {tab === 'orders' && <OrderTable orders={orders} />}
+
+      {tab === 'tickets' && <TicketBatchesPanel products={menuProducts} />}
 
       {tab === 'menu' && (
         <div className="flex-1 overflow-y-auto px-4 pb-4">

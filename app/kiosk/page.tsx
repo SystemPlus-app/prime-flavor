@@ -13,7 +13,7 @@ import { KioskSidebar } from '@/components/kiosk/KioskSidebar';
 import { KioskProductCard } from '@/components/kiosk/KioskProductCard';
 import { PagerModal } from '@/components/kiosk/PagerModal';
 import { CustomizationModal } from '@/components/kiosk/CustomizationModal';
-import { PaymentModal } from '@/components/kiosk/PaymentModal';
+import { PaymentModal, type PaymentSelectMeta } from '@/components/kiosk/PaymentModal';
 import { UpsellSuggestions } from '@/components/kiosk/UpsellSuggestions';
 import { StaffKioskModal } from '@/components/shared/StaffKioskModal';
 import type { CustomizationGroup } from '@/data/customizations';
@@ -546,7 +546,7 @@ export default function KioskPage() {
     setStep('payment');
   }
 
-  async function handlePaymentSelect(method: PaymentStatus) {
+  async function handlePaymentSelect(method: PaymentStatus, meta?: PaymentSelectMeta) {
     const items: OrderItem[] = cart.map((c) => ({
       id: crypto.randomUUID(),
       productId: c.product.id,
@@ -555,8 +555,12 @@ export default function KioskPage() {
       quantity: c.quantity,
       notes: c.notes || undefined,
     }));
+    const noteParts = [
+      pagerNumber ? `Pager #${pagerNumber}` : null,
+      meta?.ticketNumbers?.length ? `Tickets: ${meta.ticketNumbers.join(', ')}` : null,
+    ].filter(Boolean);
+    const orderNotes = noteParts.length > 0 ? noteParts.join(' · ') : undefined;
     try {
-      const orderNotes = pagerNumber ? `Pager #${pagerNumber}` : undefined;
       const order = await addOrder(items, customerName.trim() || undefined, method, 'KIOSK', orderNotes);
       setConfirmedOrder(order);
     } catch (err) {
@@ -572,7 +576,7 @@ export default function KioskPage() {
         subtotal,
         tax: calcTax(subtotal),
         total: calcTotal(subtotal),
-        notes: pagerNumber ? `Pager #${pagerNumber}` : undefined,
+        notes: orderNotes,
       }));
     }
     setCart([]);
@@ -631,6 +635,7 @@ export default function KioskPage() {
         <PaymentModal
           total={total}
           referenceId={paymentReferenceId}
+          items={Object.entries(cartQty).map(([productId, quantity]) => ({ productId, quantity }))}
           onSelect={handlePaymentSelect}
           onBack={() => {
             setPagerNumber(null);
