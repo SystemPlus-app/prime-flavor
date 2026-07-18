@@ -45,7 +45,7 @@ function itemsSummary(order: Order): string {
 }
 
 export function OrderTable({ orders }: Props) {
-  const { updateStatus } = useOrderStore();
+  const { updateStatus, deleteOrder } = useOrderStore();
   const [filter, setFilter] = useState<Filter>('all');
   const [search, setSearch] = useState('');
 
@@ -183,6 +183,17 @@ export function OrderTable({ orders }: Props) {
                             Complete
                           </button>
                         )}
+                        <button
+                          onClick={() => {
+                            if (confirm(`Delete order ${formatOrderId(order.orderNumber)} (${formatPrice(order.total)})? This cannot be undone — use it for test orders or ones entered by mistake.`)) {
+                              deleteOrder(order.id);
+                            }
+                          }}
+                          title="Delete this order (test or entered by mistake)"
+                          className="text-[10px] bg-[#3a1a10] text-[#d07060] border border-[#d0706050] px-2 py-1 rounded font-bold hover:bg-[#4a2216] transition-colors"
+                        >
+                          Delete
+                        </button>
                       </div>
                     </td>
                   </tr>

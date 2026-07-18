@@ -93,6 +93,7 @@ interface OrderStoreValue {
   addOrder: (items: OrderItem[], customerName?: string, paymentStatus?: PaymentStatus, source?: OrderSource, notes?: string) => Promise<Order>;
   updateStatus: (id: string, status: OrderStatus) => Promise<void>;
   updatePayment: (id: string, paymentStatus: PaymentStatus) => Promise<void>;
+  deleteOrder: (id: string) => Promise<void>;
   toggleAvailable: (productId: string) => Promise<void>;
   toggleVisible: (productId: string) => Promise<void>;
   updatePrice: (productId: string, price: number) => Promise<void>;
@@ -261,6 +262,16 @@ export function OrderStoreProvider({ children }: { children: React.ReactNode }) 
     setOrders((prev) => upsertOrder(prev, order));
   }, []);
 
+  const deleteOrder = useCallback(async (id: string) => {
+    const prev = orders;
+    setOrders((o) => o.filter((item) => item.id !== id));
+    const res = await fetch(`/api/orders/${id}`, { method: 'DELETE' });
+    if (!res.ok) {
+      console.error('Failed to delete order');
+      setOrders(prev);
+    }
+  }, [orders]);
+
   const toggleAvailable = useCallback(async (productId: string) => {
     const current = availability[productId] ?? menuProducts.find((p) => p.id === productId)?.available ?? true;
     const next = !current;
@@ -402,7 +413,7 @@ export function OrderStoreProvider({ children }: { children: React.ReactNode }) 
     <OrderContext.Provider value={{
       orders, availability, visibility, priceOverrides, imageOverrides, customProducts,
       ticketBatches, redeemedTickets,
-      addOrder, updateStatus, updatePayment, toggleAvailable, toggleVisible, updatePrice,
+      addOrder, updateStatus, updatePayment, deleteOrder, toggleAvailable, toggleVisible, updatePrice,
       updateImage, addCustomProduct, updateCustomProduct, deleteCustomProduct,
       addTicketBatch, updateTicketBatch, deleteTicketBatch,
     }}>
