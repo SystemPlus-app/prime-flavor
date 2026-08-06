@@ -14,7 +14,7 @@ export const products: Product[] = [
   // ── Skewers ───────────────────────────────────────────────────────────────
   {
     id: 'bbq-picanha-skewer',
-    name: 'Picanha (Best Seller)',
+    name: 'Picanha Skewer (Best Seller)',
     category: 'skewers',
     price: 11,
     available: true,
@@ -23,7 +23,7 @@ export const products: Product[] = [
   },
   {
     id: 'bbq-sausage-skewer',
-    name: 'Brazilian Sausage',
+    name: 'Brazilian Sausage Skewer',
     category: 'skewers',
     price: 6,
     available: true,
@@ -31,7 +31,7 @@ export const products: Product[] = [
   },
   {
     id: 'bbq-chicken-skewer',
-    name: 'Chicken (Thighs)',
+    name: 'Chicken Skewer (Thighs)',
     category: 'skewers',
     price: 7,
     available: true,
@@ -39,7 +39,7 @@ export const products: Product[] = [
   },
   {
     id: 'bbq-chicken-bacon-skewer',
-    name: 'Chicken W/ Bacon',
+    name: 'Chicken Bacon Skewer',
     category: 'skewers',
     price: 8,
     available: true,
@@ -47,7 +47,7 @@ export const products: Product[] = [
   },
   {
     id: 'queijo-coalho-skewer',
-    name: 'Queijo Coalho',
+    name: 'Queijo Coalho Skewer',
     category: 'skewers',
     price: 5,
     available: true,
@@ -65,7 +65,7 @@ export const products: Product[] = [
   // ── Sandwiches ────────────────────────────────────────────────────────────
   {
     id: 'picanha-sandwich',
-    name: 'Picanha',
+    name: 'Picanha Sandwich',
     category: 'sandwiches',
     price: 20,
     available: true,
@@ -74,7 +74,7 @@ export const products: Product[] = [
   },
   {
     id: 'picanha-cheese-bread',
-    name: 'Picanha Cheese Bread',
+    name: 'Picanha Cheese Bread Sandwich',
     category: 'sandwiches',
     price: 17,
     available: true,
@@ -82,7 +82,7 @@ export const products: Product[] = [
   },
   {
     id: 'chicken-bacon-sandwich',
-    name: 'Chicken W/ Bacon',
+    name: 'Chicken Bacon Sandwich',
     category: 'sandwiches',
     price: 17,
     available: true,
@@ -90,7 +90,7 @@ export const products: Product[] = [
   },
   {
     id: 'chicken-sandwich',
-    name: 'Chicken',
+    name: 'Chicken Sandwich',
     category: 'sandwiches',
     price: 15,
     available: true,
@@ -98,7 +98,7 @@ export const products: Product[] = [
   },
   {
     id: 'sausage-sandwich',
-    name: 'Brazilian Sausage',
+    name: 'Brazilian Sausage Sandwich',
     category: 'sandwiches',
     price: 16,
     available: true,
@@ -125,7 +125,7 @@ export const products: Product[] = [
   // ── Plates ────────────────────────────────────────────────────────────────
   {
     id: 'bbq-picanha-plate',
-    name: 'Picanha (Best Seller)',
+    name: 'Picanha Plate (Best Seller)',
     category: 'plates',
     price: 21,
     available: true,
@@ -134,7 +134,7 @@ export const products: Product[] = [
   },
   {
     id: 'bbq-chicken-plate',
-    name: 'Chicken (Thighs)',
+    name: 'Chicken Plate (Thighs)',
     category: 'plates',
     price: 16,
     available: true,
@@ -142,7 +142,7 @@ export const products: Product[] = [
   },
   {
     id: 'bbq-chicken-bacon-plate',
-    name: 'Chicken W/ Bacon',
+    name: 'Chicken Bacon Plate',
     category: 'plates',
     price: 17,
     available: true,
@@ -150,7 +150,7 @@ export const products: Product[] = [
   },
   {
     id: 'bbq-sausage-plate',
-    name: 'Brazilian Sausage',
+    name: 'Brazilian Sausage Plate',
     category: 'plates',
     price: 16,
     available: true,

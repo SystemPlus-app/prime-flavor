@@ -17,6 +17,7 @@ interface Props {
 }
 
 type ModalStep = 'select' | 'sending' | 'waiting' | 'success' | 'error' | 'ticket';
+type TipChoice = 'none' | '15' | '18' | '20' | '22' | 'custom';
 
 interface CheckoutResponse {
   checkout?: { id: string; status: string; cancel_reason?: string };
@@ -31,6 +32,18 @@ interface RedeemResponse {
 
 const POLL_INTERVAL_MS = 2000;
 const MAX_POLL_ATTEMPTS = 90; // ~3 minutes
+const TIP_OPTIONS: { value: TipChoice; label: string; percent?: number }[] = [
+  { value: '15', label: '15%', percent: 0.15 },
+  { value: '18', label: '18%', percent: 0.18 },
+  { value: '20', label: '20%', percent: 0.2 },
+  { value: '22', label: '22%', percent: 0.22 },
+  { value: 'custom', label: 'Custom' },
+  { value: 'none', label: 'No tip', percent: 0 },
+];
+
+function roundMoney(amount: number): number {
+  return Math.round(amount * 100) / 100;
+}
 
 export function PaymentModal({ total, referenceId, items, onSelect, onBack }: Props) {
   const [step, setStep] = useState<ModalStep>('select');
@@ -44,6 +57,13 @@ export function PaymentModal({ total, referenceId, items, onSelect, onBack }: Pr
   const [enteredTickets, setEnteredTickets] = useState<string[]>([]);
   const [ticketError, setTicketError] = useState('');
   const [redeeming, setRedeeming] = useState(false);
+  const [tipChoice, setTipChoice] = useState<TipChoice>('none');
+  const [customTipDraft, setCustomTipDraft] = useState('');
+
+  const selectedTipOption = TIP_OPTIONS.find((option) => option.value === tipChoice);
+  const customTip = Math.max(0, Number.parseFloat(customTipDraft || '0') || 0);
+  const tipAmount = roundMoney(tipChoice === 'custom' ? customTip : total * (selectedTipOption?.percent ?? 0));
+  const totalWithTip = roundMoney(total + tipAmount);
 
   useEffect(() => {
     return () => {
@@ -113,9 +133,9 @@ export function PaymentModal({ total, referenceId, items, onSelect, onBack }: Pr
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          amount: total,
+          amount: totalWithTip,
           referenceId,
-          note: `Prime Flavor Kiosk · ${referenceId}`,
+          note: `Prime Flavor Kiosk · ${referenceId} · Tip ${formatPrice(tipAmount)}`,
         }),
       });
       const data: CheckoutResponse = await res.json();
@@ -210,7 +230,7 @@ export function PaymentModal({ total, referenceId, items, onSelect, onBack }: Pr
           <div className="text-center">
             <p className="text-cream font-extrabold text-lg">Aguardando pagamento na maquininha...</p>
             <p className="text-muted text-sm mt-1">Tap, insert, or swipe the card on the terminal</p>
-            <p className="text-orange font-extrabold text-2xl mt-3 tabular-nums">{formatPrice(total)}</p>
+            <p className="text-orange font-extrabold text-2xl mt-3 tabular-nums">{formatPrice(totalWithTip)}</p>
           </div>
           <button
             onClick={handleBackFromWaiting}
@@ -363,11 +383,58 @@ export function PaymentModal({ total, referenceId, items, onSelect, onBack }: Pr
         {/* Header */}
         <div className="px-6 pt-6 pb-4 border-b border-border">
           <p className="text-muted text-xs uppercase tracking-widest font-bold mb-1">How would you like to pay?</p>
-          <p className="text-orange font-extrabold text-3xl tabular-nums">{formatPrice(total)}</p>
+          <p className="text-orange font-extrabold text-3xl tabular-nums">{formatPrice(totalWithTip)}</p>
+          <p className="text-muted text-xs mt-1">
+            Order {formatPrice(total)}
+            {tipAmount > 0 ? ` + tip ${formatPrice(tipAmount)}` : ' + no tip'}
+          </p>
         </div>
 
         {/* Methods */}
         <div className="p-5 space-y-3">
+          <div className="rounded-2xl border border-border bg-card p-4">
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <p className="text-cream font-bold text-sm">Add tip</p>
+              <p className="text-orange font-extrabold text-sm tabular-nums">{formatPrice(tipAmount)}</p>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {TIP_OPTIONS.map((option) => {
+                const amount = option.value === 'custom'
+                  ? customTip
+                  : total * (option.percent ?? 0);
+                const active = tipChoice === option.value;
+                return (
+                  <button
+                    key={option.value}
+                    onClick={() => setTipChoice(option.value)}
+                    className={`min-h-14 rounded-xl border px-2 py-2 text-center transition-all active:scale-[0.98] ${
+                      active
+                        ? 'border-orange bg-orange/15 text-cream'
+                        : 'border-border bg-surface text-cream-dim hover:border-orange/60'
+                    }`}
+                  >
+                    <span className="block text-sm font-extrabold leading-tight">{option.label}</span>
+                    {option.value !== 'custom' && (
+                      <span className="block text-[11px] text-muted mt-0.5 tabular-nums">{formatPrice(roundMoney(amount))}</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+            {tipChoice === 'custom' && (
+              <div className="mt-3">
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={customTipDraft}
+                  onChange={(e) => setCustomTipDraft(e.target.value.replace(/[^\d.]/g, ''))}
+                  placeholder="Custom tip amount"
+                  className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-cream placeholder:text-muted outline-none focus:border-orange transition-colors"
+                />
+              </div>
+            )}
+          </div>
+
           <button
             onClick={chargeCard}
             className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl border text-left transition-all duration-150 active:scale-[0.98] group bg-card border-border hover:border-orange/60 hover:bg-card/80"
