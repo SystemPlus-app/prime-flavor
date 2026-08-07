@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { Order, OrderSource, OrderStatus } from '@/types/order';
+import { products } from '@/data/primeFlavorMenu';
 import { formatElapsed, getElapsedSeconds, isLate } from '@/utils/orderStatus';
 import { useOrderStore } from '@/store/orderStore';
 
@@ -83,7 +84,7 @@ function sourceBadge(source: OrderSource): { text: string; className: string } {
 }
 
 export function KitchenOrderCard({ order }: Props) {
-  const { updateStatus } = useOrderStore();
+  const { updateStatus, customProducts } = useOrderStore();
   const [elapsed, setElapsed] = useState(getElapsedSeconds(order.createdAt));
 
   useEffect(() => {
@@ -95,6 +96,7 @@ export function KitchenOrderCard({ order }: Props) {
   const label = statusLabel(order.status, late);
   const source = sourceBadge(order.source);
   const { pager, rest } = getPagerInfo(order.notes);
+  const productNames = new Map([...products, ...customProducts].map((product) => [product.id, product.name]));
 
   return (
     <div className={`flex flex-col rounded-xl border bg-card overflow-hidden transition-shadow duration-500 ${cardClasses(order.status, late)}`}>
@@ -149,7 +151,7 @@ export function KitchenOrderCard({ order }: Props) {
               {item.quantity}×
             </span>
             <div className="flex-1 min-w-0">
-              <p className="text-cream font-semibold text-[15px] leading-tight">{item.name}</p>
+              <p className="text-cream font-semibold text-[15px] leading-tight">{productNames.get(item.productId) ?? item.name}</p>
               {item.notes && (
                 <p className="text-[#d4a530] text-[11px] font-medium mt-0.5 flex items-start gap-1">
                   <span className="shrink-0 mt-px">⚠</span>
